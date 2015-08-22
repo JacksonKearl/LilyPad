@@ -8,33 +8,53 @@ CREATE TABLE "PartySpot".locations (
 	latitude	decimal(10,2)	NOT NULL,
 	longitude	decimal(10,2)	NOT NULL,
 	logo_url 	text,
+	party		boolean         NOT NULL,
 	UNIQUE(latitude, longitude)
 );
 
 CREATE TABLE "PartySpot".people (
 	user_id		serial		PRIMARY KEY,
 	username	text		NOT NULL,
+	pin		integer		NOT NULL,
 	last_location	integer		REFERENCES "PartySpot".locations ON DELETE RESTRICT
 									 ON UPDATE CASCADE,
 	UNIQUE(username)
 );
 
+CREATE TABLE "PartySpot".favorites (
+	user_id		integer		REFERENCES "PartySpot".people ON DELETE CASCADE,
+	location_id	integer		REFERENCES "PartySpot".locations ON DELETE CASCADE,
+	UNIQUE(user_id, location_id)
+);
 
+CREATE TABLE "PartySpot".friends(
+	partyA  	integer		REFERENCES "PartySpot".people ON DELETE CASCADE,
+	partyB  	integer		REFERENCES "PartySpot".people ON DELETE CASCADE,
+	status      text     NOT NULL,
+    UNIQUE(partyA,partyB)
+);
 
+CREATE TABLE "PartySpot".meets (
+    requester   integer     REFERENCES "PartySpot".people ON DELETE CASCADE,
+    requestee   integer     REFERENCES "PartySpot".people ON DELETE CASCADE,
+    name        text        NOT NULL,
+    deeplink    text        NOT NULL
+);
 
 
 /*
 ** Create a location with given paramaters
 */
 
-CREATE OR REPLACE FUNCTION create_location(
+CREATE OR REPLACE FUNCTION "PartySpot".create_location(
 					name text, 
 					latitude numeric, 
-					longitude numeric, 
-					logo_url text = null)
+					longitude numeric,
+					party boolean, 
+					logo_url text = '')
 RETURNS void AS $$
-	INSERT INTO "PartySpot".locations (name, latitude, longitude, logo_url) 
-		VALUES (name, latitude, longitude, logo_url);
+	INSERT INTO "PartySpot".locations (name, latitude, longitude, logo_url, party) 
+		VALUES (name, latitude, longitude, logo_url, party);
 
 $$ LANGUAGE SQL VOLATILE STRICT;
 
@@ -44,7 +64,7 @@ $$ LANGUAGE SQL VOLATILE STRICT;
 ** Add/Update location's logo URL
 */
 
-CREATE OR REPLACE FUNCTION update_url(url text, location_id integer)
+CREATE OR REPLACE FUNCTION "PartySpot".update_url(url text, location_id integer)
 RETURNS void AS $$
 	
 	UPDATE "PartySpot".locations SET logo_url=$1 WHERE location_id=$2;
@@ -54,10 +74,10 @@ $$ LANGUAGE SQL VOLATILE STRICT;
 
 
 
-CREATE OR REPLACE FUNCTION distance(lat1 numeric, lon1 numeric, lat2 numeric, lon2 numeric)
+CREATE OR REPLACE FUNCTION "PartySpot".fast_distance(lat1 numeric, lon1 numeric, lat2 numeric, lon2 numeric)
 RETURNS numeric AS $$
 DECLARE
-	toRad numeric := 6.28319/360;
+	toRad numeric := 6.28319/360.0;
 	lat1 numeric := lat1 * toRad;
 	lat2 numeric := lat2 * toRad;
 	lon1 numeric := lon1 * toRad;
@@ -75,12 +95,13 @@ $$ LANGUAGE plpgsql;
 ** Returns the three locations nearest a given latitude/longitude, along with respective distances
 */
 
-CREATE OR REPLACE FUNCTION get_locations_nearest(lat numeric, lon numeric)
+CREATE OR REPLACE FUNCTION "PartySpot".get_locations_nearest(lat numeric, lon numeric)
 RETURNS TABLE (location_id integer, 
 		name text, 
 		latitude numeric, 
 		longitude numeric, 
 		logo_url text, 
+		party boolean,
 		distance numeric) AS $$
 
 	SELECT 	location_id, 
@@ -88,34 +109,52 @@ RETURNS TABLE (location_id integer,
 		latitude, 
 		longitude, 
 		logo_url, 
-		(SELECT * FROM distance(lat, lon, latitude, longitude)) AS distance 
+		party,
+		(SELECT * FROM "PartySpot".fast_distance(lat, lon, latitude, longitude)) AS distance_sqr 
 	FROM "PartySpot".locations
-	ORDER BY distance
+	ORDER BY distance_sqr
 	LIMIT 3;
 
 $$ LANGUAGE SQL IMMUTABLE STRICT;
 	
 
-
 /*
-**  Creates a user with given name at location nearest given latitude and longitude
+** Returns the three parties nearest a given latitude/longitude, along with respective distances
 */
 
-CREATE OR REPLACE FUNCTION create_user(username text, latitude numeric, longitude numeric)
+CREATE OR REPLACE FUNCTION "PartySpot".get_parties_nearest(lat numeric, lon numeric)
 RETURNS TABLE (location_id integer, 
 		name text, 
 		latitude numeric, 
 		longitude numeric, 
 		logo_url text, 
+		party boolean,
 		distance numeric) AS $$
+
+	SELECT 	location_id, 
+		name, 
+		latitude, 
+		longitude, 
+		logo_url, 
+		party,
+		(SELECT * FROM "PartySpot".fast_distance(lat, lon, latitude, longitude)) AS distance_sqr 
+	FROM "PartySpot".locations
+	WHERE party
+	ORDER BY distance_sqr
+	LIMIT 3;
+
+$$ LANGUAGE SQL IMMUTABLE STRICT;
+
+/*
+**  Creates a user with given name at location nearest given latitude and longitude
+*/
+
+CREATE OR REPLACE FUNCTION "PartySpot".create_user(username text, pin integer)
+RETURNS "PartySpot".people AS $$
 	
-	INSERT INTO "PartySpot".people (username, last_location)
-		VALUES (username, (SELECT location_id 
-					FROM get_locations_nearest(latitude, longitude)
-					LIMIT 1));
-
-	SELECT * FROM get_locations_nearest(latitude, longitude) LIMIT 1;
-
+	INSERT INTO "PartySpot".people (username, pin)
+		VALUES (username, pin);
+    SELECT * FROM "PartySpot".people WHERE username = $1 AND pin = $2;
 
 $$ LANGUAGE SQL VOLATILE STRICT;
 
@@ -125,7 +164,7 @@ $$ LANGUAGE SQL VOLATILE STRICT;
 ** Finds all users case insensitively containing a given phrase
 */
 
-CREATE OR REPLACE FUNCTION search_user(phrase text)
+CREATE OR REPLACE FUNCTION "PartySpot".search_users(phrase text)
 RETURNS TABLE( user_id integer,
 		username text,
 		location text,
@@ -156,11 +195,25 @@ RETURNS TABLE( user_id integer,
 
 $$ LANGUAGE SQL VOLATILE STRICT;  
 
+
+/*
+** Finds all locations case insensitively containing a given phrase
+*/
+
+CREATE OR REPLACE FUNCTION "PartySpot".search_locations(phrase text)
+RETURNS SETOF "PartySpot".locations AS $$
+
+	SELECT * 
+		FROM "PartySpot".locations
+		WHERE lower(name) LIKE '%' || lower(phrase) || '%';
+
+$$ LANGUAGE SQL VOLATILE STRICT;  
+
 /*
 ** Get location info for user with given username
 */
 	
-CREATE OR REPLACE FUNCTION get_user_location(user_id integer)
+CREATE OR REPLACE FUNCTION "PartySpot".get_user_location(user_id integer)
 RETURNS "PartySpot".locations AS $$
 
 	SELECT * FROM "PartySpot".locations 

@@ -1,2 +1,5 @@
 .DS_STORE
-.swp
+*.swp
+*.swo
+config.js
+
