@@ -9,10 +9,10 @@ INSERT INTO "PartySpot".locations (name, latitude, longitude, party)
 INSERT INTO "PartySpot".locations (name, latitude, longitude, party) 
 		VALUES ('University South Carolina',  33.9975,	81.0253, FALSE);
 
-INSERT INTO "PartySpot".people (username, pin) VALUES ('jkearl',	1234); 
-INSERT INTO "PartySpot".people (username, pin) VALUES ('iYango',	1642); 
-INSERT INTO "PartySpot".people (username, pin) VALUES ('Yassa',		2633); 
-INSERT INTO "PartySpot".people (username, pin) VALUES ('cdipaolo',	3345); 
+INSERT INTO "PartySpot".people (username, pin, last_location) VALUES ('jkearl',	1234, 1); 
+INSERT INTO "PartySpot".people (username, pin, last_location) VALUES ('iYango',	1642, 1); 
+INSERT INTO "PartySpot".people (username, pin, last_location) VALUES ('Yassa',	2633, 2); 
+INSERT INTO "PartySpot".people (username, pin, last_location) VALUES ('cdipaolo',	3345, 3); 
 INSERT INTO "PartySpot".people (username, pin) VALUES ('jField',	4345); 
 INSERT INTO "PartySpot".people (username, pin) VALUES ('cCrook',	5967); 
 INSERT INTO "PartySpot".people (username, pin) VALUES ('Quigg 1.0',	2653); 

@@ -11,6 +11,11 @@ router.get('/', function(req, res, next) {
   res.send('Root API directory');
 });
 
+var numberify = function(num) {
+    return +(num) || -1;
+}
+
+
 var validate = function(req, onSucc, onErr) {
     
 	if (!(req.get('username') && req.get('pin'))) {
@@ -33,8 +38,87 @@ var validate = function(req, onSucc, onErr) {
             if (results[0]) return onSucc(results[0]);
             return onErr({'status':'error', 'details':'invalid credentaials'});
         });
+        query.on('error', function(error) {
+            client.end();
+            console.log(error);
+            return onErr({'status':'error', 'details':'unknown error'});
+        });
     });
 };
+
+var mutualFriends = function(user_id_a, user_id_b, onSucc, onErr) {
+    user_id_a = numberify(user_id_a);
+    user_id_b = numberify(user_id_b);
+    results = [];
+    pg.connect(connectionString, function(err, client, done) {
+        var query = client.query('SELECT * FROM "PartySpot".friends WHERE status=\'mutual\' AND (partya = $1 AND partyb = $2 OR partya = $2 AND partyb = $1)',[user_id_a, user_id_b]);
+        query.on('row', function(row) {
+            results.push(row);
+        });
+        query.on('end', function(row) {
+            client.end();
+            if (results[0]) return onSucc();
+            return onErr({'status':'error','details':'not friends'});
+        });
+        query.on('error', function(error) {
+            client.end();
+            console.log(error);
+            return onErr({'status':'error', 'details':'unknown error'});
+        });
+    });
+};
+
+
+var requestSentFriends = function(user_id_a, user_id_b, onSucc, onErr) {
+    user_id_a = numberify(user_id_a);
+    user_id_b = numberify(user_id_b);
+    results = [];
+    pg.connect(connectionString, function(err, client, done) {
+        var query = client.query('SELECT * FROM "PartySpot".friends WHERE status=\'pending\' AND partya = $1 AND partyb = $2)',[user_id_a, user_id_b]);
+        query.on('row', function(row) {
+            results.push(row);
+        });
+        query.on('end', function(row) {
+            client.end();
+            if (results[0]) return onSucc();
+            return onErr({'status':'error','details':'no request sent'});
+        });
+        query.on('error', function(error) {
+            client.end();
+            console.log(error);
+            return onErr({'status':'error', 'details':'unknown error'});
+        });
+    });
+};
+
+
+var requestRecievedFriends = function(user_id_a, user_id_b, onSucc, onErr) {
+    user_id_a = numberify(user_id_a);
+    user_id_b = numberify(user_id_b);
+    results = [];
+    pg.connect(connectionString, function(err, client, done) {
+        var query = client.query('SELECT * FROM "PartySpot".friends WHERE status=\'pending\' AND partya = $1 AND partyb = $2',[user_id_b, user_id_a]);
+        query.on('row', function(row) {
+            results.push(row);
+        });
+        query.on('end', function(row) {
+            client.end();
+            if (results[0]) return onSucc();
+            return onErr({'status':'error','details':'no request recived'});
+        });
+        query.on('error', function(error) {
+            client.end();
+            console.log(error);
+            return onErr({'status':'error', 'details':'unknown error'});
+        });
+    });
+};
+
+
+
+
+
+
 
 router.put('/users', function(req, res) {
 	var results = [];
@@ -132,7 +216,7 @@ var findMeetUps = function(user_id, results, onSuc){
     });
 };
 
-router.get('/people', function(req, res) {
+router.get('/users', function(req, res) {
 	var results = {'meets':[], 'favorites':[], 'friends':{'mutual':[],'pending':[],'requested':[]}};
 	
     validate(req, function(user) {
@@ -320,7 +404,7 @@ router.put('/locations/:location_id', function(req, res) {
 });
 
 
-router.get('/search/people', function(req, res) {
+router.get('/search/users', function(req, res) {
 	var results = [];
     if (!req.get('phrase')) {
         client.end();
@@ -361,8 +445,8 @@ router.get('/search/people', function(req, res) {
     );
 });
 
-
-router.post('/people', function(req, res) {
+//Do not use
+router.post('/users', function(req, res) {
 	var results = [];
 	
 	pg.connect(connectionString, function(err, client, done) {
@@ -402,37 +486,47 @@ router.post('/people', function(req, res) {
 	});
 });
 
-router.get('/people/:user_id', function(req, res) {
+router.get('/users/:user_id', function(req, res) {
 	var results = [];
 
 	var id = req.params.user_id;
+    validate(req, function(user){
+        mutualFriends(user.user_id, id, function() {
+            pg.connect(connectionString, function(err, client, done) {
+                    
+                var query = client.query('SELECT * FROM "PartySpot".get_user_location($1)', [id]);
 
-	pg.connect(connectionString, function(err, client, done) {
-		
-		var query = client.query("SELECT * FROM get_user_location($1)", [id]);
-
-		query.on('row', function(row) {
-			results.push(row);
-		});
-		
-		query.on('end', function(row) {
-			if (results[0].name) {
-				console.log('GET success! Found user.');
-				client.end();
-				return res.status(200).json({'status':'success',
-							    'details':'found',
-							    'results': results });
-			} else {
-				console.log('GET ERROR! User not found');
-				client.end();
-				return res.status(404).json({'status':'error',
-							    'details':'user not found'});
-			}
-		});
-		if(err) {
-			console.log(err);
-		}
-	});
+                query.on('row', function(row) {
+                    results.push(row);
+                });
+                
+                query.on('end', function(row) {
+                    console.log(results);
+                    if (results[0].name) {
+                        console.log('GET success! Found user.');
+                        client.end();
+                        return res.status(200).json({'status':'success',
+                                        'details':'found',
+                                        'results': results });
+                    } else if (results){
+                        console.log('GET ERROR! User no location');
+                        client.end();
+                        return res.status(404).json({'status':'error',
+                                        'details':'user no location'});
+                    } else {
+                        console.log('GET ERROR! User not found');
+                        client.end();
+                        return res.status(404).json({'status':'error',
+                                        'details':'user not found'});
+                    }
+                });
+            })
+        }, function(error) {
+            return res.status(401).json(error);
+        })
+    }, function(error) {
+        return res.status(401).json(error);
+    });
 });
 
 router.put('/users/:user_id/favorites', function(req, res) {
@@ -466,7 +560,6 @@ router.put('/users/:user_id/favorites', function(req, res) {
 });
 
 
-//TODO: Make requesting someone who has requested you turn you mutual
 router.put('/users/:user_id/friends', function(req, res) {
     var id = parseInt(req.params.user_id,10);
     var target;  
@@ -480,15 +573,29 @@ router.put('/users/:user_id/friends', function(req, res) {
                 return res.status(401).json({'status':'error','details':'cannot alter other user'});
             }
             validate(req, function(user) {
-                var addFav = client.query('INSERT INTO "PartySpot".friends (partya,partyb, status) VALUES (' + user.user_id + ',' + req.get('requestee') + ',\'pending\')');
-                addFav.on('end', function(row) {
-                    client.end();
-                    return res.status(201).json({'status':'success','details':'request sent'});
-                });
-                addFav.on('error', function(row) {
-                    client.end();
-                    return res.status(500).json({'status':'error','details':'unknown error'});
-                });
+                requestRecievedFriends(user.user_id, req.get('requestee'), function() {
+                    
+                    var addFav = client.query('UPDATE "PartySpot".friends SET status=\'mutual\' WHERE partya = $1 and partyb = $2', [req.get('requestee'), user.user_id]);
+                    addFav.on('end', function(row) {
+                        client.end();
+                        return res.status(201).json({'status':'success','details':'confirmed request'});
+                    });
+                    addFav.on('error', function(row) {
+                        client.end();
+                        return res.status(500).json({'status':'error','details':'unknown error'});
+                    });
+                    
+                }, function(proceed){
+                    var addFav = client.query('INSERT INTO "PartySpot".friends (partya,partyb, status) VALUES (' + user.user_id + ',' + req.get('requestee') + ',\'pending\')');
+                    addFav.on('end', function(row) {
+                        client.end();
+                        return res.status(201).json({'status':'success','details':'request sent'});
+                    });
+                    addFav.on('error', function(row) {
+                        client.end();
+                        return res.status(500).json({'status':'error','details':'unknown error'});
+                    });
+                })
             }, function (err) {
                 client.end();
                 return res.status(401).json(err);
@@ -529,11 +636,10 @@ router.post('/users/:user_id/friends', function(req, res) {
     }
     pg.connect(connectionString, function(err, client, done) {
         validate(req, function(user) {
-            console.log('UPDATE "PartySpot".friends SET status=\'mutual\' WHERE partya = $1 and partyb = $2', [parseInt(req.get('req_id'),10), user.user_id]);
             var addFav = client.query('UPDATE "PartySpot".friends SET status=\'mutual\' WHERE partya = $1 and partyb = $2', [parseInt(req.get('req_id'),10), user.user_id]);
             addFav.on('end', function(row) {
                 client.end();
-                return res.status(201).json({'status':'success','details':'changed request'});
+                return res.status(201).json({'status':'success','details':'confirmed request'});
             });
             addFav.on('error', function(row) {
                 client.end();
@@ -546,38 +652,40 @@ router.post('/users/:user_id/friends', function(req, res) {
     });
 });
 
-//TODO: Only send requests to friends
 router.post('/users/:user_id/requests', function(req, res) {
     if (!(req.body.name && req.body.deeplink)){
         return res.status(400).json({'status':'error','details':'insufficaint data'});
     }
     validate(req, 
         function(user) {
-            pg.connect(connectionString, function(err, client, done) {
-                var query = client.query(format('INSERT INTO "PartySpot".meets VALUES (%L,%L,%L,%L);', 
-                                user.user_id, 
-                                parseInt(req.params.user_id,10),
-                                req.body.name,
-                                req.body.deeplink)
-                            );
+            mutualFriends(user.user_id, req.params.user_id, function() {
+                pg.connect(connectionString, function(err, client, done) {
+                    var query = client.query(format('INSERT INTO "PartySpot".meets VALUES (%L,%L,%L,%L);', 
+                                    user.user_id, 
+                                    parseInt(req.params.user_id,10),
+                                    req.body.name,
+                                    req.body.deeplink)
+                                );
 
-                query.on('row', function(row) {
-                    results.push(row);
-                });
-                
-                query.on('end', function(row) {
-                    console.log('POST success! Invite sent!', req.body);
-                    client.end();
-                    return res.status(201).json({'status':'success',
-                                    'details':'Invite Sent'});
-                });
-                query.on('error', function(error) {
-                    console.log('Put ERROR! Unknown error', error);
-                    client.end();
-                    return res.status(500).json({'status':'error',
-                                    'details':'Unknown error'});
-                });
-            })
+                    query.on('row', function(row) {
+                        results.push(row);
+                    });
+                    
+                    query.on('end', function(row) {
+                        console.log('POST success! Invite sent!', req.body);
+                        client.end();
+                        return res.status(201).json({'status':'success',
+                                        'details':'Invite Sent'});
+                    });
+                    query.on('error', function(error) {
+                        console.log('Put ERROR! Unknown error', error);
+                        client.end();
+                        return res.status(500).json({'status':'error',
+                                        'details':'Unknown error'});
+                    });
+                })}, function(err) {
+                    return res.status(401).json(err);
+                })
 
         }, function(err) {
             return res.status(401).json(err)
