@@ -694,19 +694,4 @@ router.post('/users/:user_id/requests', function(req, res) {
 
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 module.exports = router;
