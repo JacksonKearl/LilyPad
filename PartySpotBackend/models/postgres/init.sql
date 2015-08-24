@@ -13,9 +13,9 @@ CREATE TABLE "PartySpot".locations (
 );
 
 CREATE TABLE "PartySpot".people (
-	user_id		serial		PRIMARY KEY,
-	username	text		NOT NULL,
-	pin		integer		NOT NULL,
+	user_id		    serial		PRIMARY KEY,
+	username	    text		NOT NULL,
+	pin		        integer		NOT NULL,
 	last_location	integer		REFERENCES "PartySpot".locations ON DELETE RESTRICT
 									 ON UPDATE CASCADE,
 	UNIQUE(username)
