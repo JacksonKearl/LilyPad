@@ -629,6 +629,7 @@ pin OR token | text    |
   "longitude":-71.0921,
   "logo_url":"http://miter.mit.edu..."
 }
+```
 
 *Response Codes*
 - 202 - user deleted
@@ -667,6 +668,7 @@ pin OR token | text    |
 {
   "logo_url":"http://3.bp.blogspot..."
 }
+```
 
 *Response Codes*
 - 202 - user deleted
