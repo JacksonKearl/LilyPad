@@ -15,7 +15,7 @@ Anyways, probably better off sniffing the plaintext PIN or JWT sent over plain H
 ##Installing
 If you'd like to run the backend on your own computer for whatever reason, first `npm`, `nodejs`, and `psql` must be installed, then 
 
-```
+```bash
 $ git clone https://github.com/JacksonKearl/LilyPad.git
 $ cd LilyPad/LilyPadBackend/
 $ npm install
