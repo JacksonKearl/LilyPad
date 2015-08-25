@@ -236,26 +236,25 @@ router.put('/favorites', function(req, res) {
 	}
 
 	pg.connect(connectionString, function(err, client, done) {
-			auth.validate(req, function(user) {
-				var addFav = client.query('INSERT INTO lilypad.favorites '+
-																				'(user_id,location_id) VALUES '+
-																				'(' + user.user_id +
-																				',' + req.get('location_id') +
-																				')');
-				addFav.on('end', function(row) {
-					client.end();
-					return res.status(201).json({'status':'success',
-																			'details':'favorited location'});
-				});
-				addFav.on('error', function(row) {
-					client.end();
-					return res.status(500).json({'status':'error',
-																			'details':'possible prevous fav'});
-				});
-			}, function (err) {
+		auth.validate(req, function(user) {
+			var addFav = client.query('INSERT INTO lilypad.favorites '+
+																			'(user_id,location_id) VALUES '+
+																			'(' + user.user_id +
+																			',' + req.get('location_id') +
+																			')');
+			addFav.on('end', function(row) {
 				client.end();
-				return res.status(401).json(err);
+				return res.status(201).json({'status':'success',
+																		'details':'favorited location'});
 			});
+			addFav.on('error', function(row) {
+				client.end();
+				return res.status(500).json({'status':'error',
+																		'details':'possible prevous fav'});
+			});
+		}, function (err) {
+			client.end();
+			return res.status(401).json(err);
 		});
 	});
 });
