@@ -19,6 +19,8 @@ If you'd like to run the backend on your own computer for whatever reason, first
 $ git clone https://github.com/JacksonKearl/LilyPad.git
 $ cd LilyPad/LilyPadBackend/
 $ npm install
+$ cd models/postgres/
+$ ./refresh.sh
 $ vim config.js
 $ npm start
 ````
