@@ -88,7 +88,7 @@ pin OR token | text    |
     "username": "newUser1",
     "pin": null,
     "last_location": 1,
-    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHBpcmVzIjoxNjY3NSwidXNlciI6Im5ld1VzZXIxIn0.o4VU8Cn9TrNXV_NhbuED-9qlxbGHnpszImQj_Q2Qu0g"
+    "token": "eyJ0eXAiOiJKV1QiLHg..."
   },
   "results": {
     "meets": [
