@@ -153,7 +153,7 @@ router.get('/', function(req, res) {
 });
 
 
-router.post('/', function(req, res) {
+router.patch('/', function(req, res) {
 	if (!req.get('location_id')) {
 		return res.status(400).json({'status':'error','details':'no location to join'});
 	}

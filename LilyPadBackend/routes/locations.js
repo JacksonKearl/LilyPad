@@ -102,7 +102,7 @@ router.put('/', function(req, res) {
 
 });
 
-router.put('/:location_id', function(req, res) {
+router.patch('/:location_id', function(req, res) {
 	var results = [];
 
 	var id = req.params.location_id;
