@@ -4,239 +4,319 @@ Browser based applet to find the most convenient party city for you and a friend
 _____________________________________________________________
 ##API
 
-###GET /api/locations
+Method                |        Path            | Summary
+----------------------|------------------------|--------------------------------
+[PUT](#newuser)       | /users                 | create a user
+[GET](#getuser)       | /users                 | get main user info
+[PATCH](#locateuser)  | /users                 | update user's location
+[PUT](#addFav)        | /users/favorites       | add a favorite location
+[PUT](#requestFriend) | /users/:userid/friends | friend request :userid
+[POST](#acceptFriend) | /users/:userid/friends | accept :userid's request
+[DELETE](#delFriend)  | /users/:userid/friends | reject :userid's request
+[PUT](#meetUp)        | /users/:userid/meets   | arrange to meet with :userid
+[DELETE](#delMeet)    | /users/:userid/meets   | delete request to meet up
+||
+[GET](#searchLoc)     | /search/locations      | search locations matching term
+[GET](#searchUser)    | /search/users          | search users matching term
+||
+[GET](#getLocations)  | /locations             | get locations nearest a given location
+[PUT](#putLocation)   | /locations             | create location
+[PATCH](#changeUrl)   | /locations/:locationid | update url of given location
 
-Find the three locations nearest a passed latitude longitude.
+<a name="newuser"></a>
+###PUT /users
 
+Creates a new user, returning user info with a JWT to use for remaining connections.
 
 **Headers Passed**
 
-Key   | Type    | 
-------|---------|
-latitude   | numeric  | 
-longitude | numeric
-
-
-*Response Codes*
-- 400 - invalid request, no headers
-- 500 - unknown internal error
-- 200 - locations found
-
-**Returned JSON**
-```json
-{
-  "status": "success",
-  "details": "locations found",
-  "results": [
-    {
-      "location_id": 5,
-      "name": "University South Carolina",
-      "latitude": "34.00",
-      "longitude": "81.03",
-      "logo_url": null,
-      "distance": "1152"
-    },
-    {
-      "location_id": 4,
-      "name": "UVA",
-      "latitude": "38.04",
-      "longitude": "78.51",
-      "logo_url": null,
-      "distance": "1213"
-    },
-    {
-      "location_id": 1,
-      "name": "MIT",
-      "latitude": "42.36",
-      "longitude": "71.09",
-      "logo_url": null,
-      "distance": "1378"
-    }
-  ]
-}
-```
-
-
-###POST /api/locations
-
-Add a new location at given cooridnants with optional image url for location.
-
+Key        | Type    |
+-----------|---------|
+username   | text    |
+pin        | text    |
 
 **Passed JSON**
-```json
-{
-  "name":"MIT",
-  "latitude":"42.12",
-  "longitude":"89.16",
-  ["logo_url":"http://miter.mit.edu/wp-content/uploads/2012/08/MIT_logo_black_red.jpg"]
-}
-```
 
+*None*
 
 *Response Codes*
 - 400 - invalid request
-- 500 - possible duplicate location
+- 500 - possible duplicate username
 - 201 - location was created
 
 **Returned JSON**
 ```json
+
 {
-  "status":"success"|"error",
-  "details":"what happened"
+  "status": "success",
+  "details": "user added",
+  "token": "eyJ0eXAiOiJKV1..."
 }
+```
+
+
+<a name="getuser"></a>
+###GET /users
+
+Get all info about user, including friends, follows, and arranged meets
+
+**Headers Passed**
+
+Key          | Type    |
+-------------|---------|
+username     | text    |
+pin OR token | text    |
+
+**Passed JSON**
+
+*NONE*
+
+*Response Codes*
+- 202 - user deleted
+- 401 - unauthorized
+- 500 - server error
+
+**Returned JSON**
+
+```json
+{}
 ```
 
 #####Comments
 
-Can not create a location within ~1 mile of another.
+Server finds user id from session. No need to send it yourself. Returns blank object.
 
+<a name="searchLoc"></a>
+###GET /search/locations
 
-###PATCH /api/locations/:location_id
-
-Add/update a url for an location's logo.
-
-
-**Passed JSON**
-```json
-{
-  "logo_url":"http://miter.mit.edu/wp-content/uploads/2012/08/MIT_logo_black_red.jpg"
-}
-```
-
-
-*Response Codes*
-- 400 - no url found
-- 201 - otherwise, always returned
-
-**Returned JSON**
-```json
-{
-  "status":"success",
-  "details":"updated"
-}
-```
-
-
-
-
-
-
-
-
-###GET /api/people
-
-Search for usernames containing passed substring
-
+Find all locations containing a given phrase.
 
 **Headers Passed**
 
-Key   | Type    | 
-------|---------|
-phrase   | text  | 
+Key          | Type    |
+-------------|---------|
+phrase       | text    |
 
+**Passed JSON**
+
+*NONE*
 
 *Response Codes*
-- 400 - invalid request, no headers
-- 500 - unknown internal error
-- 200 - users found
+- 200 - okay
+- 401 - unauthorized
+- 500 - server error
 
 **Returned JSON**
+
 ```json
 {
   "status": "success",
   "details": "found matches",
   "results": [
     {
-      "user_id": 7,
-      "username": "Quigg 1.0",
-      "location": "UCLA",
-      "latitude": "34.07",
-      "longitude": "118.44",
-      "logo_url": null
+      "location_id": 2,
+      "name": "UVA",
+      "latitude": "38.04",
+      "longitude": "-78.51",
+      "logo_url": "http://community.brcc.edu/hs/wp-content/uploads/uvaLogo.gif",
+      "party": true
     },
     {
-      "user_id": 8,
-      "username": "Alpha Quigg",
-      "location": "UCLA",
-      "latitude": "34.07",
-      "longitude": "118.44",
-      "logo_url": null
+      "location_id": 3,
+      "name": "University South Carolina",
+      "latitude": "34.00",
+      "longitude": "-81.03",
+      "logo_url": "",
+      "party": true
     }
   ]
 }
 ```
 
 
-###POST /api/people
+<a name="searchUser"></a>
+###GET /search/users
 
-Create a user and assign to location nearest given coordinates
+Find all usernames containing a given phrase. No location information given for privacy's sake.
 
+**Headers Passed**
+
+Key          | Type    |
+-------------|---------|
+username     | text    |
+pin OR token | text    |
+phrase       | text    |
 
 **Passed JSON**
-```json
-{
-  "username":"Randy",
-  "latitude":"35.21",
-  "longitude":"117.89",
-}
-```
 
+*NONE*
 
 *Response Codes*
-- 400 - invalid request
-- 500 - possible duplicate username
-- 201 - user was created
+- 200 - okay
+- 401 - unauthorized
+- 500 - server error
 
 **Returned JSON**
+
 ```json
 {
-  "status":"success"|"error",
-  "details":"what happened"
+  "status": "success",
+  "details": "found matches",
+  "results": [
+    {
+      "user_id": 9,
+      "username": "newUser1"
+    },
+    {
+      "user_id": 10,
+      "username": "newUser2"
+    }
+  ]
 }
 ```
 
 
-###GET /api/people/:user_id
+<a name="getLocations"></a>
+###GET /locations
 
-Get location of user with given ID.
+Delete the logged-in user from the database
+
+**Headers Passed**
+
+*NONE*
+
+**Passed JSON**
+
+*NONE*
+
+*Response Codes*
+- 202 - user deleted
+- 401 - unauthorized
+- 500 - server error
+
+**Returned JSON**
+
+```json
+{}
+```
+
+#####Comments
+
+Server finds user id from session. No need to send it yourself. Returns blank object.
+
+
+<a name="putLocation"></a>
+###PUT /locations
+
+Add a new location with given name, location, partyability, and (hopefully) logo URL
 
 
 **Headers Passed**
 
-Key   | Type    | 
-------|---------|
-user_id   | integer  | 
+Key          | Type    |
+-------------|---------|
+username     | text    |
+pin OR token | text    |
 
+**Passed JSON**
+
+```json
+{
+  "name":"MIT",
+  "party":"true",
+  "latitude":42.3598,
+  "longitude":-71.0921,
+  "logo_url":"http:??miter.mit.edu..."
+}
 
 *Response Codes*
-- 404 - no user found
-- 200 - user found
+- 202 - user deleted
+- 401 - unauthorized
+- 500 - server error (duplicate?)
 
 **Returned JSON**
+
 ```json
 {
   "status": "success",
-  "details": "found",
-  "results": [
-    {
-      "location_id": 1,
-      "name": "MIT",
-      "latitude": "42.36",
-      "longitude": "71.09",
-      "logo_url": null
-    }
-  ]
+  "details": "location added"
+}
+```
+
+#####Comments
+
+Two locations may not have same position to hundredths of a degree.
+
+
+<a name="changeUrl"></a>
+###PATCH /locations/:location_id
+
+Add or update a location's logo
+
+**Headers Passed**
+
+Key          | Type    |
+-------------|---------|
+username     | text    |
+pin OR token | text    |
+
+**Passed JSON**
+
+```json
+{
+  "logo_url":"http://3.bp.blogspot..."
+}
+
+*Response Codes*
+- 202 - user deleted
+- 401 - unauthorized
+- 500 - server error
+
+**Returned JSON**
+
+```json
+{
+  "status": "success",
+  "details": "updated"
 }
 ```
 
 
 
+
+
+
+
+<a name="deleteuser"></a>
+###DELETE /user
+
+Delete the logged-in user from the database
+
+**Headers Passed**
+
+*NONE*
+
+**Passed JSON**
+
+*NONE*
+
+*Response Codes*
+- 202 - user deleted
+- 401 - unauthorized
+- 500 - server error
+
+**Returned JSON**
+
+```json
+{}
+```
+
 #####Comments
 
-Fails silently when location_id not available.
+Server finds user id from session. No need to send it yourself. Returns blank object.
 
 
-#Documentation Format 
+#Documentation Format
 ####(courtesy of [Conner DiPaolo](https://github.com/cdipaolo))
 
 Keep documentation in this format please!
@@ -285,4 +365,3 @@ key   | string  | here's a header description
 put notes here about, for example, optional parameters and/or specific types
 
 ```
-
