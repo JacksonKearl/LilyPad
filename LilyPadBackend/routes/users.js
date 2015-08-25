@@ -271,44 +271,43 @@ router.put('/:user_id/friends', function(req, res) {
 	}
 
 	pg.connect(connectionString, function(err, client, done) {
-			auth.validate(req, function(user) {
-				auth.requestRecievedFriends(user.user_id, req.get('user_id'),
-																																	function() {
-					var addFav = client.query('UPDATE lilypad.friends SET '+
-												' status=\'mutual\' WHERE partya = $1 and partyb = $2',
-												[id, user.user_id]);
-					addFav.on('end', function(row) {
-						client.end();
-						return res.status(201).json({'status':'success',
-																				'details':'confirmed request'});
-					});
-					addFav.on('error', function(row) {
-						client.end();
-						return res.status(500).json({'status':'error',
-																				'details':'unknown error'});
-					});
+		auth.validate(req, function(user) {
+			auth.requestRecievedFriends(user.user_id, req.get('user_id'),
+																																function() {
+				var addFav = client.query('UPDATE lilypad.friends SET '+
+											' status=\'mutual\' WHERE partya = $1 and partyb = $2',
+											[id, user.user_id]);
+				addFav.on('end', function(row) {
+					client.end();
+					return res.status(201).json({'status':'success',
+																			'details':'confirmed request'});
+				});
+				addFav.on('error', function(row) {
+					client.end();
+					return res.status(500).json({'status':'error',
+																			'details':'unknown error'});
+				});
 
-				}, function(proceed){
-					var addFav = client.query('INSERT INTO lilypad.friends '+
-																		'(partya,partyb, status) VALUES ('+
-																		user.user_id + ',' + id +
-																		',\'pending\')');
+			}, function(proceed){
+				var addFav = client.query('INSERT INTO lilypad.friends '+
+																	'(partya,partyb, status) VALUES ('+
+																	user.user_id + ',' + id +
+																	',\'pending\')');
 
-					addFav.on('end', function(row) {
-						client.end();
-						return res.status(201).json({'status':'success',
-																				'details':'request sent'});
-					});
-					addFav.on('error', function(row) {
-						client.end();
-						return res.status(500).json({'status':'error',
-																				'details':'unknown error'});
-					});
-				})
-			}, function (err) {
-				client.end();
-				return res.status(401).json(err);
-			});
+				addFav.on('end', function(row) {
+					client.end();
+					return res.status(201).json({'status':'success',
+																			'details':'request sent'});
+				});
+				addFav.on('error', function(row) {
+					client.end();
+					return res.status(500).json({'status':'error',
+																			'details':'unknown error'});
+				});
+			})
+		}, function (err) {
+			client.end();
+			return res.status(401).json(err);
 		});
 	});
 });
