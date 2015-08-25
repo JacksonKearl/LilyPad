@@ -182,7 +182,7 @@ router.get('/:user_id', function(req, res) {
 
 	var id = req.params.user_id;
 	auth.validate(req, function(user){
-		mutualFriends(user.user_id, id, function() {
+		auth.mutualFriends(user.user_id, id, function() {
 			pg.connect(connectionString, function(err, client, done) {
 
 				var query = client.query('SELECT * FROM ' +
@@ -412,6 +412,9 @@ router.post('/:user_id/meets', function(req, res) {
 
 
 router.delete('/:user_id/meets', function(req, res) {
+	if (!req.get('location_name')) {
+		return res.status(400).json({'status':'error', 'details':'need location_name header'})
+	}
 	auth.validate(req,
 		function(user) {
 			auth.mutualFriends(user.user_id, req.params.user_id, function() {

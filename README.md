@@ -13,7 +13,7 @@ Method                |        Path            | Summary
 [PUT](#requestFriend) | /users/:userid/friends | friend request :userid
 [POST](#acceptFriend) | /users/:userid/friends | accept :userid's request
 [DELETE](#delFriend)  | /users/:userid/friends | reject :userid's request
-[PUT](#meetUp)        | /users/:userid/meets   | arrange to meet with :userid
+[POST](#meetUp)        | /users/:userid/meets   | arrange to meet with :userid
 [DELETE](#delMeet)    | /users/:userid/meets   | delete request to meet up
 [GET](#findUser)      | /users/:userid         | get :userid's location
 ||
@@ -80,7 +80,56 @@ pin OR token | text    |
 **Returned JSON**
 
 ```json
-{}
+{
+  "status": "success",
+  "details": "data retrived",
+  "user": {
+    "user_id": 9,
+    "username": "newUser1",
+    "pin": null,
+    "last_location": 1,
+    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHBpcmVzIjoxNjY3NSwidXNlciI6Im5ld1VzZXIxIn0.o4VU8Cn9TrNXV_NhbuED-9qlxbGHnpszImQj_Q2Qu0g"
+  },
+  "results": {
+    "meets": [
+      {
+        "requester": 10,
+        "requestee": 9,
+        "name": "Memphis",
+        "deeplink": "http://api.maps.google.com/634g4g5"
+      }
+    ],
+    "favorites": [
+      {
+        "user_id": 9,
+        "location_id": 2
+      }
+    ],
+    "friends": {
+      "mutual": [
+        {
+          "partya": 9,
+          "partyb": 10,
+          "status": "mutual"
+        }
+      ],
+      "pending": [
+        {
+          "partya": 12,
+          "partyb": 9,
+          "status": "pending"
+        }
+      ],
+      "requested": [
+        {
+          "partya": 9,
+          "partyb": 11,
+          "status": "pending"
+        }
+      ]
+    }
+  }
+}
 ```
 
 
@@ -151,6 +200,7 @@ location_id  | serial  |
 <a name="requestFriend"></a>
 ###PUT /users/:user_id/friends
 
+Send a friend request to :user_id, such that you will be able to quickly acces them and view their last posted location information.
 
 **Headers Passed**
 
@@ -171,12 +221,16 @@ pin OR token | text    |
 **Returned JSON**
 
 ```json
-{}
+{
+  "status": "success",
+  "details": "request sent"
+}
 ```
 
 <a name="acceptFriend"></a>
 ###POST /users/:user_id/friends
 
+Accept the friend request sent by :user_id, giving you both the ability to quickly see where the other is, and arrange meet ups.
 
 **Headers Passed**
 
@@ -197,12 +251,16 @@ pin OR token | text    |
 **Returned JSON**
 
 ```json
-{}
+{
+  "status": "success",
+  "details": "confirmed request"
+}
 ```
 
 <a name="delFriend"></a>
 ###DELETE /users/:user_id/friends
 
+Delete the friend request sent by :user_id
 
 **Headers Passed**
 
@@ -223,11 +281,14 @@ pin OR token | text    |
 **Returned JSON**
 
 ```json
-{}
+{
+  "status": "success",
+  "details": "request gone"
+}
 ```
 
 <a name="meetUp"></a>
-###PUT /users/:user_id/meets
+###POST /users/:user_id/meets
 
 
 **Headers Passed**
@@ -239,7 +300,11 @@ pin OR token | text    |
 
 **Passed JSON**
 
-*NONE*
+```json
+{
+  "name":"Memphis",
+  "deeplink":"http://api.maps.google.com/34t5g54"
+}
 
 *Response Codes*
 - 200 -
@@ -249,7 +314,10 @@ pin OR token | text    |
 **Returned JSON**
 
 ```json
-{}
+{
+  "status": "success",
+  "details": "Invite Sent"
+}
 ```
 
 <a name="delMeet"></a>
@@ -262,20 +330,24 @@ Key          | Type    |
 -------------|---------|
 username     | text    |
 pin OR token | text    |
+location_name| text    |
 
 **Passed JSON**
 
 *NONE*
 
 *Response Codes*
-- 200 -
+- 200 - deleted
 - 401 - unauthorized
 - 500 - server error
 
 **Returned JSON**
 
 ```json
-{}
+{
+  "status": "success",
+  "details": "Invite Deleted"
+}
 ```
 
 <a name="findUser"></a>
