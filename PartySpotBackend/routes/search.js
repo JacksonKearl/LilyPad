@@ -7,7 +7,7 @@ var connectionString = config.url;
 var cleanser = require('./format.js');
 
 
-router.get('/search/locations', function(req, res) {
+router.get('/locations', function(req, res) {
 	var results = [];
 
 	if (!req.get('phrase')) {
@@ -44,7 +44,7 @@ router.get('/search/locations', function(req, res) {
 });
 
 
-router.get('/search/users', function(req, res) {
+router.get('/users', function(req, res) {
 	var results = [];
 	if (!req.get('phrase')) {
 		client.end();

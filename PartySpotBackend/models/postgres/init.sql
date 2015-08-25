@@ -14,15 +14,15 @@ CREATE TABLE "PartySpot".locations (
 
 CREATE TABLE "PartySpot".people (
 	user_id		    serial		PRIMARY KEY,
-	username	    text		NOT NULL,
-	pin		        integer		NOT NULL,
+	username	    text	  	NOT NULL,
+	pin		        text  		NOT NULL,
 	last_location	integer		REFERENCES "PartySpot".locations ON DELETE RESTRICT
 									 ON UPDATE CASCADE,
 	UNIQUE(username)
 );
 
 CREATE TABLE "PartySpot".favorites (
-	user_id		integer		REFERENCES "PartySpot".people ON DELETE CASCADE,
+	user_id	  	integer		REFERENCES "PartySpot".people ON DELETE CASCADE,
 	location_id	integer		REFERENCES "PartySpot".locations ON DELETE CASCADE,
 	UNIQUE(user_id, location_id)
 );
@@ -149,7 +149,7 @@ $$ LANGUAGE SQL IMMUTABLE STRICT;
 **  Creates a user with given name at location nearest given latitude and longitude
 */
 
-CREATE OR REPLACE FUNCTION "PartySpot".create_user(username text, pin integer)
+CREATE OR REPLACE FUNCTION "PartySpot".create_user(username text, pin text)
 RETURNS "PartySpot".people AS $$
 	
 	INSERT INTO "PartySpot".people (username, pin)

@@ -8,7 +8,7 @@ var cleanser = require('./format.js');
 
 
 
-router.get('/locations', function(req, res) {
+router.get('/', function(req, res) {
 	var results = [];
 
 	if (!(req.get('latitude') && req.get('longitude') && req.get('party'))) {
@@ -51,7 +51,7 @@ router.get('/locations', function(req, res) {
 	});
 });
 
-router.put('/locations', function(req, res) {
+router.put('/', function(req, res) {
 	var results = [];
 
 
@@ -102,7 +102,7 @@ router.put('/locations', function(req, res) {
 
 });
 
-router.put('/locations/:location_id', function(req, res) {
+router.put('/:location_id', function(req, res) {
 	var results = [];
 
 	var id = req.params.location_id;

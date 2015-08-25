@@ -2,14 +2,15 @@ var bcrypt = require('bcrypt');
 var pg = require('pg');
 var config = require('../config.js');
 var connectionString = config.url;
+var secret = config.secret;
 var cleanser = require('./format.js');
-
+var jwt = require('jwt-simple');
 
 auth = {};
 
 auth.validate = function(req, onSucc, onErr) {
 
-	if (!(req.get('username') && req.get('pin'))) {
+	if (!(req.get('username') && req.get('pin') || req.get('token'))) {
 		console.log('GET ERROR! Insufficient data.', req.body);
 		return onErr({'status': 'error', 'details': 'Insufficient data'});
 	}
@@ -17,24 +18,10 @@ auth.validate = function(req, onSucc, onErr) {
 	var name = req.get('username');
 	var pin  = req.get('pin');
 
-	if (req.get('token')) {
-		try {
-	  	var decoded = jwt.decode(jwt.encode(payload, 'badSecret'), secret);
-			var curDaysSinceEpoch = Math.floor((new Date).getTime()/(1000*60*60*24));
-			var timeIsValid = decoded.expires <= curDaysSinceEpoch;
-			if (decoded.user == name && timeIsValid) {
-				return onSucc();
-			}
-		}
-		catch (err) {
-
-		}
-	}
-
 
 	var results = []
 	pg.connect(connectionString, function(err, client, done){
-		var query = client.query(format('SELECT * FROM "PartySpot".people '+
+    var query = client.query(cleanser('SELECT * FROM "PartySpot".people '+
 																						' WHERE username = %L',name));
 		query.on('row', function(row) {
 			results.push(row);
@@ -42,18 +29,36 @@ auth.validate = function(req, onSucc, onErr) {
 
 		query.on('end', function(row) {
 			client.end()
-			if (results[0]) {
-				bcrypt.compare(pin, results[0].pin, function(err, res) {
-					if (err) {
-						return onErr({'status':'error', 'details':'some bcrypt error'});
-					}
-					if (res) {
-						return onSucc();
-					}
-					return onErr({'status':'error', 'details':'invalid password'})
-				});
+			
+      if (!results[0]){
+			  return onErr({'status':'error', 'details':'invalid username'});
       }
-			return onErr({'status':'error', 'details':'invalid username'});
+      if (req.get('token')) {
+        try {
+          var decoded = jwt.decode(req.get('token'), secret);
+          var curDaysSinceEpoch = Math.floor((new Date).getTime()/(1000*60*60*24));
+          var timeIsValid = decoded.expires > curDaysSinceEpoch;
+          console.log(decoded, curDaysSinceEpoch);  
+          if (decoded.user == name && timeIsValid) {
+            results[0].pin = null;
+            return onSucc(results[0]);
+          }
+        }
+        catch (err) {
+          console.log(err);
+        }
+      }
+
+      bcrypt.compare(pin, results[0].pin, function(err, res) {
+        if (err) {
+          return onErr({'status':'error', 'details':'some bcrypt error'});
+        }
+        if (res) {
+          results[0].pin = null;
+          return onSucc(results[0]);
+        }
+          return onErr({'status':'error', 'details':'invalid password'})
+				});
 		});
 		query.on('error', function(error) {
 			client.end();

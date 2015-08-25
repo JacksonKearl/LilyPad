@@ -9,11 +9,11 @@ var bcrypt = require('bcrypt');
 var jwt = require('jwt-simple');
 
 
-router.put('/users', function(req, res) {
+router.put('/', function(req, res) {
 	var results = [];
 
-	if (!(req.body.username && req.body.pin)) {
-		console.log('POST ERROR! Insufficient data.', req.body);
+	if (!(req.get('username') && req.get('pin'))) {
+		console.log('PUT ERROR! Insufficient data.', req.body);
 		return res.status(400).json({'status': 'error',
 						'details': 'Insufficient data'});
 	}
@@ -21,15 +21,15 @@ router.put('/users', function(req, res) {
 	pg.connect(connectionString, function(err, client, done) {
 
 
-    var pin = req.body.pin;
+    var pin = req.get('pin');
 
-		bcrypt.hash(pin, 10, function(err, hash) {
+	  bcrypt.hash(pin, 13, function(err, hash) {
 			if (err) {
 				return res.status(500).json({'status':'error',
 								'details':'bcrypt error'});
 			}
-			var query = client.query("SELECT * FROM create_user($1,$2)",
-							[req.body.username,
+			var query = client.query('SELECT * FROM "PartySpot".create_user($1,$2)',
+							[req.get('username'),
 							hash,]
 						);
 
@@ -43,7 +43,7 @@ router.put('/users', function(req, res) {
 				var curDaysSinceEpoch = Math.floor((new Date).
 																			getTime()/(1000*60*60*24));
 				var expireDaysSinceEpoch = curDaysSinceEpoch + 3;
-				var payload = {'user': req.body.username,
+				var payload = {'user': req.get('username'),
 										'expires': expireDaysSinceEpoch};
 				var token = jwt.encode(payload, config.secret);
 
@@ -52,7 +52,8 @@ router.put('/users', function(req, res) {
 																			'token':token});
 			});
 			query.on('error', function(error) {
-				console.log('POST ERROR! Possible repeat name');
+        
+				console.log('PUT ERROR! Possible repeat name', error);
 				client.end();
 				return res.status(500).json({'status':'error',
 								'details':'Possible repeat name'});
@@ -122,7 +123,7 @@ var findMeetUps = function(user_id, results, onSuc){
 };
 
 
-router.get('/users', function(req, res) {
+router.get('/', function(req, res) {
 	var results = {'meets':[],
 						 'favorites':[],
 							 'friends':{'mutual':[],
@@ -132,10 +133,19 @@ router.get('/users', function(req, res) {
 
 	auth.validate(req, function(user) {
 		findMeetUps(user.user_id, results, function() {
-			return res.status(200).json({'status':'success',
+			
+      var curDaysSinceEpoch = Math.floor((new Date).
+                                  getTime()/(1000*60*60*24));
+      var expireDaysSinceEpoch = curDaysSinceEpoch + 7;
+      var payload = {'user': user.username,
+                'expires': expireDaysSinceEpoch};
+      var token = jwt.encode(payload, config.secret);
+
+      return res.status(200).json({'status':'success',
 										'details':'data retrived',
 										   'user':user,
-										'results':results});
+										'results':results,
+                      'token':token});
 		});
 	}, function(err){
 		return res.status(401).json(err);
@@ -143,48 +153,39 @@ router.get('/users', function(req, res) {
 });
 
 
-//Do not use
-router.post('/users', function(req, res) {
-	var results = [];
-
+router.post('/', function(req, res) {
+	if (!req.get('location_id')) {
+		return res.status(400).json({'status':'error','details':'no location to join'});
+	}
 	pg.connect(connectionString, function(err, client, done) {
+		auth.validate(req, function(user) {
 
-		if (!(req.body.username && req.body.latitude && req.body.longitude)) {
-			console.log('POST ERROR! Insufficient data.', req.body);
-			client.end()
-			return res.status(400).json({'status': 'error',
-							'details': 'Insufficient data'});
-		}
+			var addFav = client.query('UPDATE "PartySpot".people SET last_location=$1 '+
+																					' WHERE user_id = $2',
+																					[cleanser.numberify(req.get('location_id')),
+																					user.user_id]);
 
-		var query = client.query("SELECT * FROM create_user($1,$2,$3)",
-						[req.body.username,
-						req.body.latitude,
-						req.body.longitude]);
-
-		query.on('row', function(row) {
-			results.push(row);
-		});
-
-		query.on('end', function(row) {
-			console.log('POST success! Added person.', req.body);
+			addFav.on('end', function(row) {
+				client.end();
+				return res.status(201).json({'status':'success',
+																		'details':'location set'});
+			});
+			addFav.on('error', function(row) {
+				client.end();
+				return res.status(500).json({'status':'error',
+																		'details':'unknown error'});
+			});
+		}, function (err) {
 			client.end();
-			return res.status(201).json({'status':'success',
-							'details':'person added',
-						   'location': results});
+			return res.status(401).json(err);
 		});
-		query.on('error', function(error) {
-			console.log('POST ERROR! Possible repeat username');
-			client.end();
-			return res.status(500).json({'status':'error',
-							'details':'Possible repeat username'});
-		});
-		if(err) {
-			console.log(err);
-		}
 	});
 });
 
-router.get('/users/:user_id', function(req, res) {
+
+
+
+router.get('/:user_id', function(req, res) {
 	var results = [];
 
 	var id = req.params.user_id;
@@ -234,7 +235,7 @@ router.get('/users/:user_id', function(req, res) {
 	});
 });
 
-router.put('/users/:user_id/favorites', function(req, res) {
+router.put('/:user_id/favorites', function(req, res) {
 	var id = parseInt(req.params.user_id,10);
 	var target;
 
@@ -279,11 +280,11 @@ router.put('/users/:user_id/favorites', function(req, res) {
 });
 
 
-router.put('/users/:user_id/friends', function(req, res) {
+router.put('/:user_id/friends', function(req, res) {
 	var id = parseInt(req.params.user_id,10);
 	var target;
 
-	if(!(req.get('username') && req.get('requestee'))) {
+	if(!(req.get('username') && req.get('user_id'))) {
 		return res.status(500).json({'status':'error',
 																'details':'no headers'});
 	}
@@ -300,11 +301,11 @@ router.put('/users/:user_id/friends', function(req, res) {
 																		'details':'cannot alter other user'});
 			}
 			auth.validate(req, function(user) {
-				auth.requestRecievedFriends(user.user_id, req.get('requestee'),
+				auth.requestRecievedFriends(user.user_id, req.get('user_id'),
 																																	function() {
 					var addFav = client.query('UPDATE "PartySpot".friends SET '+
 												' status=\'mutual\' WHERE partya = $1 and partyb = $2',
-												[req.get('requestee'), user.user_id]);
+												[req.get('user_id'), user.user_id]);
 					addFav.on('end', function(row) {
 						client.end();
 						return res.status(201).json({'status':'success',
@@ -319,7 +320,7 @@ router.put('/users/:user_id/friends', function(req, res) {
 				}, function(proceed){
 					var addFav = client.query('INSERT INTO "PartySpot".friends '+
 																		'(partya,partyb, status) VALUES ('+
-																		user.user_id + ',' + req.get('requestee') +
+																		user.user_id + ',' + req.get('user_id') +
 																		',\'pending\')');
 
 					addFav.on('end', function(row) {
@@ -343,7 +344,7 @@ router.put('/users/:user_id/friends', function(req, res) {
 
 
 
-router.delete('/users/:user_id/friends', function(req, res) {
+router.delete('/:user_id/friends', function(req, res) {
 	if (!req.get('req_id')) {
 		return res.status(400).json({'status':'error','details':'no id to delete'});
 	}
@@ -373,9 +374,9 @@ router.delete('/users/:user_id/friends', function(req, res) {
 
 
 
-router.post('/users/:user_id/friends', function(req, res) {
+router.post('/:user_id/friends', function(req, res) {
 	if (!req.get('req_id')) {
-		return res.status(400).json({'status':'error','details':'no id to delete'});
+		return res.status(400).json({'status':'error','details':'no id to confirm'});
 	}
 	pg.connect(connectionString, function(err, client, done) {
 		auth.validate(req, function(user) {
@@ -399,16 +400,16 @@ router.post('/users/:user_id/friends', function(req, res) {
 	});
 });
 
-router.post('/users/:user_id/requests', function(req, res) {
+router.post('/:user_id/requests', function(req, res) {
 	if (!(req.body.name && req.body.deeplink)){
 		return res.status(400).json({'status':'error',
 																'details':'insufficaint data'});
 	}
 	auth.validate(req,
 		function(user) {
-			mutualFriends(user.user_id, req.params.user_id, function() {
+			auth.mutualFriends(user.user_id, req.params.user_id, function() {
 				pg.connect(connectionString, function(err, client, done) {
-					var query = client.query(cleanser.format(
+					var query = client.query(cleanser(
 						'INSERT INTO "PartySpot".meets VALUES (%L,%L,%L,%L);',
 									user.user_id,
 									parseInt(req.params.user_id,10),
@@ -425,6 +426,54 @@ router.post('/users/:user_id/requests', function(req, res) {
 						client.end();
 						return res.status(201).json({'status':'success',
 										'details':'Invite Sent'});
+					});
+					query.on('error', function(error) {
+						console.log('Put ERROR! Unknown error', error);
+						client.end();
+						return res.status(500).json({'status':'error',
+										'details':'Unknown error'});
+					});
+				})}, function(err) {
+					return res.status(401).json(err);
+				})
+
+		}, function(err) {
+			return res.status(401).json(err)
+		}
+	);
+
+});
+
+
+router.delete('/:user_id/requests', function(req, res) {
+	auth.validate(req,
+		function(user) {
+			auth.mutualFriends(user.user_id, req.params.user_id, function() {
+				pg.connect(connectionString, function(err, client, done) {
+					console.log(cleanser(
+						'DELETE FROM "PartySpot".meets WHERE requester = %s AND requestee = %s AND name = %L;',
+									user.user_id,
+									parseInt(req.params.user_id,10),
+                  req.get('location_name')
+								));
+
+          
+          var query = client.query(cleanser(
+						'DELETE FROM "PartySpot".meets WHERE requester = %s AND requestee = %s AND name = %L;',
+									parseInt(req.params.user_id,10),
+                  user.user_id,
+                  req.get('location_name')
+								));
+
+					query.on('row', function(row) {
+						results.push(row);
+					});
+
+					query.on('end', function(row) {
+						console.log('POST success! Invite sent!', req.body);
+						client.end();
+						return res.status(201).json({'status':'success',
+										'details':'Invite Deleted'});
 					});
 					query.on('error', function(error) {
 						console.log('Put ERROR! Unknown error', error);
