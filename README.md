@@ -1,4 +1,5 @@
 # LilyPad
+## Overview
 Cordova-based app to find the most convenient party city for you and a friend. Targeting iOS and Andriod. 
 
 Backend written in Node.js with express for routing, interfaces with a PostgreSQL database. 
@@ -9,6 +10,27 @@ Authentication using [bcrypt](https://github.com/ncb000gt/node.bcrypt.js/) with 
 
 However, in the all too likely event that the database is breached, someone not using glacial hardware, or only checking the 123456 and 808080 I'm sure 90% of users will use, will get through in about a second. #ohwell. Don't know why anyone would do that though, with full database access they'd already have the ability to form all the digital friends they're clearly lacking in the real world. 
 Anyways, probably better off sniffing the plaintext PIN or JWT sent over plain HTTP requests.
+
+
+##Installing
+If you'd like to run this on your own computer for whatever reason, first `npm`, `nodejs`, and `psql` must be installed, then 
+
+```
+$ git clone https://github.com/JacksonKearl/LilyPad.git
+$ cd LilyPad/LilyPadBackend
+$ npm install
+$ vim config.js
+$ npm start
+````
+
+The `config.js` file should look something like:
+```javascript
+module.exports = 
+{
+    "url":"postgres://[username]:[password]@[host]:[port]/[database name]",
+    "secret":"ZfegJZVbb3GtAjkYf5rketps7LZkLaxCLHcUGUr...."
+};
+```
 
 _____________________________________________________________
 ##API
