@@ -24,10 +24,10 @@ router.get('/', function(req, res) {
 		var query;
 		if (party === 'true') {
 			query = client.query('SELECT * FROM '+
-													'"PartySpot".get_parties_nearest($1,$2)',[lat,lon]);
+													'lilypad.get_parties_nearest($1,$2)',[lat,lon]);
 		} else {
 			query = client.query('SELECT * FROM '+
-												'"PartySpot".get_locations_nearest($1,$2)',[lat,lon]);
+												'lilypad.get_locations_nearest($1,$2)',[lat,lon]);
 		}
 
 		query.on('row', function(row) {
@@ -69,7 +69,7 @@ router.put('/', function(req, res) {
 		function(user) {
 			pg.connect(connectionString, function(err, client, done) {
 				var query = client.query('SELECT * FROM '+
-																 '"PartySpot".create_location($1,$2,$3,$4,$5)',
+																 'lilypad.create_location($1,$2,$3,$4,$5)',
 								[req.body.name,
 								req.body.latitude,
 								req.body.longitude,
@@ -118,7 +118,7 @@ router.put('/:location_id', function(req, res) {
 	auth.validate(req,
 		function(user){
 			pg.connect(connectionString, function(err, client, done) {
-				var query = client.query("SELECT * FROM update_url($1,$2)", [data, id]);
+				var query = client.query("SELECT * FROM lilypad.update_url($1,$2)", [data, id]);
 
 				query.on('row', function(row) {
 					results.push(row);

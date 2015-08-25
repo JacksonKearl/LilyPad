@@ -21,7 +21,7 @@ auth.validate = function(req, onSucc, onErr) {
 
 	var results = []
 	pg.connect(connectionString, function(err, client, done){
-    var query = client.query(cleanser('SELECT * FROM "PartySpot".people '+
+    var query = client.query(cleanser('SELECT * FROM lilypad.people '+
 																						' WHERE username = %L',name));
 		query.on('row', function(row) {
 			results.push(row);
@@ -29,7 +29,7 @@ auth.validate = function(req, onSucc, onErr) {
 
 		query.on('end', function(row) {
 			client.end()
-			
+
       if (!results[0]){
 			  return onErr({'status':'error', 'details':'invalid username'});
       }
@@ -38,7 +38,7 @@ auth.validate = function(req, onSucc, onErr) {
           var decoded = jwt.decode(req.get('token'), secret);
           var curDaysSinceEpoch = Math.floor((new Date).getTime()/(1000*60*60*24));
           var timeIsValid = decoded.expires > curDaysSinceEpoch;
-          console.log(decoded, curDaysSinceEpoch);  
+          console.log(decoded, curDaysSinceEpoch);
           if (decoded.user == name && timeIsValid) {
             results[0].pin = null;
             return onSucc(results[0]);
@@ -73,7 +73,7 @@ auth.mutualFriends = function(user_id_a, user_id_b, onYes, onNo) {
 	user_id_b = cleanser.numberify(user_id_b);
 	results = [];
 	pg.connect(connectionString, function(err, client, done) {
-		var query = client.query('SELECT * FROM "PartySpot".friends WHERE '+
+		var query = client.query('SELECT * FROM lilypad.friends WHERE '+
 								' status=\'mutual\' AND '+
 								'(partya = $1 AND partyb = $2 OR partya = $2 AND partyb = $1)',
 								[user_id_a, user_id_b]);
@@ -100,7 +100,7 @@ auth.requestSentFriends = function(user_id_a, user_id_b, onYes, onNo) {
 	user_id_b = cleanser.numberify(user_id_b);
 	results = [];
 	pg.connect(connectionString, function(err, client, done) {
-		var query = client.query('SELECT * FROM "PartySpot".friends WHERE '+
+		var query = client.query('SELECT * FROM lilypad.friends WHERE '+
 												' status=\'pending\' AND partya = $1 AND partyb = $2)',
 												[user_id_a, user_id_b]);
 		query.on('row', function(row) {
@@ -125,7 +125,7 @@ auth.requestRecievedFriends = function(user_id_a, user_id_b, onYes, onNo) {
 	user_id_b = cleanser.numberify(user_id_b);
 	results = [];
 	pg.connect(connectionString, function(err, client, done) {
-		var query = client.query('SELECT * FROM "PartySpot".friends WHERE '+
+		var query = client.query('SELECT * FROM lilypad.friends WHERE '+
 									' status=\'pending\' AND partya = $1 AND partyb = $2',
 									[user_id_b, user_id_a]);
 

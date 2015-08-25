@@ -19,7 +19,7 @@ router.get('/locations', function(req, res) {
 	pg.connect(connectionString, function(err, client, done) {
 		var searchPhrase = req.get('phrase');
 
-		var query = client.query('SELECT * FROM "PartySpot".search_locations($1)',
+		var query = client.query('SELECT * FROM lilypad.search_locations($1)',
 																																[searchPhrase]);
 
 		query.on('row', function(row) {
@@ -57,7 +57,7 @@ router.get('/users', function(req, res) {
 		function(user) {
 			pg.connect(connectionString,
 				function(err, client, done) {
-					var query = client.query('SELECT * FROM search_user($1)',
+					var query = client.query('SELECT * FROM lilypad.search_users($1)',
 																													[searchPhrase]);
 
 					query.on('row', function(row) {

@@ -28,7 +28,7 @@ router.put('/', function(req, res) {
 				return res.status(500).json({'status':'error',
 								'details':'bcrypt error'});
 			}
-			var query = client.query('SELECT * FROM "PartySpot".create_user($1,$2)',
+			var query = client.query('SELECT * FROM lilypad.create_user($1,$2)',
 							[req.get('username'),
 							hash,]
 						);
@@ -52,7 +52,7 @@ router.put('/', function(req, res) {
 																			'token':token});
 			});
 			query.on('error', function(error) {
-        
+
 				console.log('PUT ERROR! Possible repeat name', error);
 				client.end();
 				return res.status(500).json({'status':'error',
@@ -64,7 +64,7 @@ router.put('/', function(req, res) {
 
 var findFavorites = function(user_id, results, onSuc){
 	pg.connect(connectionString, function(err, client, done) {
-		var favoriteQuery = client.query('SELECT * FROM "PartySpot".favorites ' +
+		var favoriteQuery = client.query('SELECT * FROM lilypad.favorites ' +
 																							'WHERE user_id = ' + user_id);
 
 		favoriteQuery.on('row', function(row) {
@@ -82,7 +82,7 @@ var findFavorites = function(user_id, results, onSuc){
 
 var findFriends = function(user_id, results, onSuc){
 	pg.connect(connectionString, function(err, client, done) {
-		var friendQuery = client.query('SELECT * FROM "PartySpot".friends ' +
+		var friendQuery = client.query('SELECT * FROM lilypad.friends ' +
 																						'WHERE partyA = ' + user_id +
 																						' OR partyB = ' + user_id);
 
@@ -108,7 +108,7 @@ var findFriends = function(user_id, results, onSuc){
 
 var findMeetUps = function(user_id, results, onSuc){
 	pg.connect(connectionString, function(err, client, done) {
-		var meetUpQuery = client.query('SELECT * FROM "PartySpot".meets ' +
+		var meetUpQuery = client.query('SELECT * FROM lilypad.meets ' +
 																					' WHERE requestee = ' + user_id );
 
 		meetUpQuery.on('row', function(row) {
@@ -133,7 +133,7 @@ router.get('/', function(req, res) {
 
 	auth.validate(req, function(user) {
 		findMeetUps(user.user_id, results, function() {
-			
+
       var curDaysSinceEpoch = Math.floor((new Date).
                                   getTime()/(1000*60*60*24));
       var expireDaysSinceEpoch = curDaysSinceEpoch + 7;
@@ -160,7 +160,7 @@ router.post('/', function(req, res) {
 	pg.connect(connectionString, function(err, client, done) {
 		auth.validate(req, function(user) {
 
-			var addFav = client.query('UPDATE "PartySpot".people SET last_location=$1 '+
+			var addFav = client.query('UPDATE lilypad.people SET last_location=$1 '+
 																					' WHERE user_id = $2',
 																					[cleanser.numberify(req.get('location_id')),
 																					user.user_id]);
@@ -194,7 +194,7 @@ router.get('/:user_id', function(req, res) {
 			pg.connect(connectionString, function(err, client, done) {
 
 				var query = client.query('SELECT * FROM ' +
-																	'"PartySpot".get_user_location($1)', [id]);
+																	'lilypad.get_user_location($1)', [id]);
 
 				query.on('row', function(row) {
 					results.push(row);
@@ -245,7 +245,7 @@ router.put('/:user_id/favorites', function(req, res) {
 	}
 
 	pg.connect(connectionString, function(err, client, done) {
-		var idQuery = client.query('SELECT username FROM "PartySpot".people WHERE '+
+		var idQuery = client.query('SELECT username FROM lilypad.people WHERE '+
 																														'user_id =' + id);
 		idQuery.on('row', function(row) {
 			target = row.username;
@@ -256,7 +256,7 @@ router.put('/:user_id/favorites', function(req, res) {
 																		'details':'cannot alter other user'});
 			}
 			auth.validate(req, function(user) {
-				var addFav = client.query('INSERT INTO "PartySpot".favorites '+
+				var addFav = client.query('INSERT INTO lilypad.favorites '+
 																				'(user_id,location_id) VALUES '+
 																				'(' + user.user_id +
 																				',' + req.get('location_id') +
@@ -290,7 +290,7 @@ router.put('/:user_id/friends', function(req, res) {
 	}
 
 	pg.connect(connectionString, function(err, client, done) {
-		var idQuery = client.query('SELECT username FROM "PartySpot".people '+
+		var idQuery = client.query('SELECT username FROM lilypad.people '+
 																												'WHERE user_id =' + id);
 		idQuery.on('row', function(row) {
 			target = row.username;
@@ -303,7 +303,7 @@ router.put('/:user_id/friends', function(req, res) {
 			auth.validate(req, function(user) {
 				auth.requestRecievedFriends(user.user_id, req.get('user_id'),
 																																	function() {
-					var addFav = client.query('UPDATE "PartySpot".friends SET '+
+					var addFav = client.query('UPDATE lilypad.friends SET '+
 												' status=\'mutual\' WHERE partya = $1 and partyb = $2',
 												[req.get('user_id'), user.user_id]);
 					addFav.on('end', function(row) {
@@ -318,7 +318,7 @@ router.put('/:user_id/friends', function(req, res) {
 					});
 
 				}, function(proceed){
-					var addFav = client.query('INSERT INTO "PartySpot".friends '+
+					var addFav = client.query('INSERT INTO lilypad.friends '+
 																		'(partya,partyb, status) VALUES ('+
 																		user.user_id + ',' + req.get('user_id') +
 																		',\'pending\')');
@@ -350,7 +350,7 @@ router.delete('/:user_id/friends', function(req, res) {
 	}
 	pg.connect(connectionString, function(err, client, done) {
 		auth.validate(req, function(user) {
-			var addFav = client.query('DELETE FROM "PartySpot".friends '+
+			var addFav = client.query('DELETE FROM lilypad.friends '+
 																					' WHERE partya = $1 and partyb = $2',
 																					[parseInt(req.get('req_id'),10),
 																					user.user_id]);
@@ -380,7 +380,7 @@ router.post('/:user_id/friends', function(req, res) {
 	}
 	pg.connect(connectionString, function(err, client, done) {
 		auth.validate(req, function(user) {
-			var addFav = client.query('UPDATE "PartySpot".friends '+
+			var addFav = client.query('UPDATE lilypad.friends '+
 										' SET status=\'mutual\' WHERE partya = $1 and partyb = $2',
 										 [parseInt(req.get('req_id'),10), user.user_id]);
 			addFav.on('end', function(row) {
@@ -410,7 +410,7 @@ router.post('/:user_id/requests', function(req, res) {
 			auth.mutualFriends(user.user_id, req.params.user_id, function() {
 				pg.connect(connectionString, function(err, client, done) {
 					var query = client.query(cleanser(
-						'INSERT INTO "PartySpot".meets VALUES (%L,%L,%L,%L);',
+						'INSERT INTO lilypad.meets VALUES (%L,%L,%L,%L);',
 									user.user_id,
 									parseInt(req.params.user_id,10),
 									req.body.name,
@@ -451,15 +451,15 @@ router.delete('/:user_id/requests', function(req, res) {
 			auth.mutualFriends(user.user_id, req.params.user_id, function() {
 				pg.connect(connectionString, function(err, client, done) {
 					console.log(cleanser(
-						'DELETE FROM "PartySpot".meets WHERE requester = %s AND requestee = %s AND name = %L;',
+						'DELETE FROM lilypad.meets WHERE requester = %s AND requestee = %s AND name = %L;',
 									user.user_id,
 									parseInt(req.params.user_id,10),
                   req.get('location_name')
 								));
 
-          
+
           var query = client.query(cleanser(
-						'DELETE FROM "PartySpot".meets WHERE requester = %s AND requestee = %s AND name = %L;',
+						'DELETE FROM lilypad.meets WHERE requester = %s AND requestee = %s AND name = %L;',
 									parseInt(req.params.user_id,10),
                   user.user_id,
                   req.get('location_name')
