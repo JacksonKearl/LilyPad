@@ -47,7 +47,6 @@ router.get('/locations', function(req, res) {
 router.get('/users', function(req, res) {
 	var results = [];
 	if (!req.get('phrase')) {
-		client.end();
 		console.log('GET ERROR! No headers.');
 		return res.status(400).json({'status':'error',});
 	}
