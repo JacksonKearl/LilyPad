@@ -1,34 +1,34 @@
 # PartySpot
-Browser based applet to find the most convenient party city for you and a friend
+Cordova-based app to find the most convenient party city for you and a friend.
 
 _____________________________________________________________
 ##API
 ####User Endpoints
-Method                |        Path            | Summary
-----------------------|------------------------|--------------------------------
-[PUT](#newuser)       | /users                 | create a user
-[GET](#getuser)       | /users                 | get main user info
-[PATCH](#locateuser)  | /users                 | update user's location
-[PUT](#addFav)        | /users/favorites       | add a favorite location
-[PUT](#requestFriend) | /users/:userid/friends | friend request :userid
-[POST](#acceptFriend) | /users/:userid/friends | accept :userid's request
-[DELETE](#delFriend)  | /users/:userid/friends | reject :userid's request
-[POST](#meetUp)       | /users/:userid/meets   | arrange to meet with :userid
-[DELETE](#delMeet)    | /users/:userid/meets   | delete request to meet up
-[GET](#findUser)      | /users/:userid         | get :userid's location
+Method                |        Path            | Summary                       | Protected?
+----------------------|------------------------|-------------------------------|---------------------------
+[PUT](#newuser)       | /users                 | create a user                 | N
+[GET](#getuser)       | /users                 | get main user info            | Y
+[PATCH](#locateuser)  | /users                 | update user's location        | Y
+[PUT](#addFav)        | /users/favorites       | add a favorite location       | Y 
+[PUT](#requestFriend) | /users/:userid/friends | friend request :userid        | Y 
+[POST](#acceptFriend) | /users/:userid/friends | accept :userid's request      | Y  
+[DELETE](#delFriend)  | /users/:userid/friends | reject :userid's request      | Y   
+[POST](#meetUp)       | /users/:userid/meets   | arrange to meet with :userid  | Y   
+[DELETE](#delMeet)    | /users/:userid/meets   | delete request to meet up     | Y 
+[GET](#findUser)      | /users/:userid         | get :userid's location        | Y  
 
 ####Search Endpoints
-Method                |        Path            | Summary
-----------------------|------------------------|--------------------------------
-[GET](#searchLoc)     | /search/locations      | search locations matching term
-[GET](#searchUser)    | /search/users          | search users matching term
+Method                |        Path            | Summary                       | Protected?
+----------------------|------------------------|-------------------------------|------------------------------
+[GET](#searchLoc)     | /search/locations      | search locations matching term| N
+[GET](#searchUser)    | /search/users          | search users matching term    | Y
 
 ####Location Endpoints
-Method                |        Path            | Summary
-----------------------|------------------------|--------------------------------
-[GET](#getLocations)  | /locations             | get locations nearest a given location
-[PUT](#putLocation)   | /locations             | create location
-[PATCH](#changeUrl)   | /locations/:locationid | update url of given location
+Method                |        Path            | Summary                                | Protected?
+----------------------|------------------------|----------------------------------------|---------------------------
+[GET](#getLocations)  | /locations             | get locations nearest a given location | N
+[PUT](#putLocation)   | /locations             | create location                        | Y
+[PATCH](#changeUrl)   | /locations/:locationid | update url of given location           | Y
 
 <a name="newuser"></a>
 ###PUT /users
