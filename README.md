@@ -1,4 +1,4 @@
-# PartySpot
+# LilyPad
 Cordova-based app to find the most convenient party city for you and a friend. Targeting iOS and Andriod. 
 
 Backend written in Node.js with express for routing, interfaces with a PostgreSQL database. 
