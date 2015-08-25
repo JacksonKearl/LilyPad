@@ -15,6 +15,7 @@ Method                |        Path            | Summary
 [DELETE](#delFriend)  | /users/:userid/friends | reject :userid's request
 [PUT](#meetUp)        | /users/:userid/meets   | arrange to meet with :userid
 [DELETE](#delMeet)    | /users/:userid/meets   | delete request to meet up
+[GET](#findUser)      | /users/:userid         | get :userid's location
 ||
 [GET](#searchLoc)     | /search/locations      | search locations matching term
 [GET](#searchUser)    | /search/users          | search users matching term
@@ -72,7 +73,7 @@ pin OR token | text    |
 *NONE*
 
 *Response Codes*
-- 202 - user deleted
+- 200 - got user
 - 401 - unauthorized
 - 500 - server error
 
@@ -82,9 +83,245 @@ pin OR token | text    |
 {}
 ```
 
-#####Comments
 
-Server finds user id from session. No need to send it yourself. Returns blank object.
+<a name="locateuser"></a>
+###PATCH /users
+
+Set user's last_location to a given location_id.
+
+**Headers Passed**
+
+Key          | Type    |
+-------------|---------|
+username     | text    |
+pin OR token | text    |
+location_id  | serial  |
+
+**Passed JSON**
+
+*NONE*
+
+*Response Codes*
+- 200 - location changed
+- 401 - unauthorized
+- 500 - server error
+
+**Returned JSON**
+
+```json
+{
+  "status": "success",
+  "details": "location set"
+}
+```
+
+<a name="addFav"></a>
+###PUT /users/favorites
+
+Add a 'favorite' location that a user will have quick access to.
+
+**Headers Passed**
+
+Key          | Type    |
+-------------|---------|
+username     | text    |
+pin OR token | text    |
+location_id  | serial  |
+
+
+
+**Passed JSON**
+
+*NONE*
+
+*Response Codes*
+- 201 - favorited location
+- 401 - unauthorized
+- 500 - server error
+
+**Returned JSON**
+
+```json
+{
+  "status": "success",
+  "details": "favorited location"
+}
+```
+
+<a name="requestFriend"></a>
+###PUT /users/:user_id/friends
+
+
+**Headers Passed**
+
+Key          | Type    |
+-------------|---------|
+username     | text    |
+pin OR token | text    |
+
+**Passed JSON**
+
+*NONE*
+
+*Response Codes*
+- 200 -
+- 401 - unauthorized
+- 500 - server error
+
+**Returned JSON**
+
+```json
+{}
+```
+
+<a name="acceptFriend"></a>
+###POST /users/:user_id/friends
+
+
+**Headers Passed**
+
+Key          | Type    |
+-------------|---------|
+username     | text    |
+pin OR token | text    |
+
+**Passed JSON**
+
+*NONE*
+
+*Response Codes*
+- 200 -
+- 401 - unauthorized
+- 500 - server error
+
+**Returned JSON**
+
+```json
+{}
+```
+
+<a name="delFriend"></a>
+###DELETE /users/:user_id/friends
+
+
+**Headers Passed**
+
+Key          | Type    |
+-------------|---------|
+username     | text    |
+pin OR token | text    |
+
+**Passed JSON**
+
+*NONE*
+
+*Response Codes*
+- 200 -
+- 401 - unauthorized
+- 500 - server error
+
+**Returned JSON**
+
+```json
+{}
+```
+
+<a name="meetUp"></a>
+###PUT /users/:user_id/meets
+
+
+**Headers Passed**
+
+Key          | Type    |
+-------------|---------|
+username     | text    |
+pin OR token | text    |
+
+**Passed JSON**
+
+*NONE*
+
+*Response Codes*
+- 200 -
+- 401 - unauthorized
+- 500 - server error
+
+**Returned JSON**
+
+```json
+{}
+```
+
+<a name="delMeet"></a>
+###DELETE /users/:user_id/meets
+
+
+**Headers Passed**
+
+Key          | Type    |
+-------------|---------|
+username     | text    |
+pin OR token | text    |
+
+**Passed JSON**
+
+*NONE*
+
+*Response Codes*
+- 200 -
+- 401 - unauthorized
+- 500 - server error
+
+**Returned JSON**
+
+```json
+{}
+```
+
+<a name="findUser"></a>
+###GET /users/:user_id
+
+
+**Headers Passed**
+
+Key          | Type    |
+-------------|---------|
+username     | text    |
+pin OR token | text    |
+
+**Passed JSON**
+
+*NONE*
+
+*Response Codes*
+- 200 -
+- 401 - unauthorized
+- 500 - server error
+
+**Returned JSON**
+
+```json
+{}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <a name="searchLoc"></a>
 ###GET /search/locations
@@ -179,30 +416,66 @@ phrase       | text    |
 <a name="getLocations"></a>
 ###GET /locations
 
-Delete the logged-in user from the database
+Find the locations, either at all, or only those that party, nearest a given location.
 
 **Headers Passed**
 
-*NONE*
+Key          | Type    |
+-------------|---------|
+latitude     | text    |
+longitude    | text    |
+party        | text    |
 
 **Passed JSON**
 
 *NONE*
 
 *Response Codes*
-- 202 - user deleted
+- 200 - okay
 - 401 - unauthorized
 - 500 - server error
 
 **Returned JSON**
 
 ```json
-{}
+{
+  "status": "success",
+  "details": "locations found",
+  "results": [
+    {
+      "location_id": 1,
+      "name": "MIT",
+      "latitude": "42.36",
+      "longitude": "-71.09",
+      "logo_url": "http://miter.mit.edu/...",
+      "party": true,
+      "distance": "824"
+    },
+    {
+      "location_id": 2,
+      "name": "UVA",
+      "latitude": "38.04",
+      "longitude": "-78.51",
+      "logo_url": "http://community.brcc.edu/...",
+      "party": true,
+      "distance": "846"
+    },
+    {
+      "location_id": 3,
+      "name": "University South Carolina",
+      "latitude": "34.00",
+      "longitude": "-81.03",
+      "logo_url": "http://3.bp.blogspot.com/....",
+      "party": true,
+      "distance": "1011"
+    }
+  ]
+}
 ```
 
 #####Comments
 
-Server finds user id from session. No need to send it yourself. Returns blank object.
+Don't really know what units "distance" is in. Probably kilometers.
 
 
 <a name="putLocation"></a>
@@ -226,7 +499,7 @@ pin OR token | text    |
   "party":"true",
   "latitude":42.3598,
   "longitude":-71.0921,
-  "logo_url":"http:??miter.mit.edu..."
+  "logo_url":"http://miter.mit.edu..."
 }
 
 *Response Codes*

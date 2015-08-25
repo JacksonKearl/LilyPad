@@ -264,7 +264,7 @@ router.put('/:user_id/friends', function(req, res) {
 	var id = parseInt(req.params.user_id,10);
 	var target;
 
-	if(!(req.get('username') && req.get('user_id'))) {
+	if(!(req.get('username')) {
 		return res.status(500).json({'status':'error',
 																'details':'no headers'});
 	}
