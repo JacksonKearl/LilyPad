@@ -3,7 +3,7 @@ Browser based applet to find the most convenient party city for you and a friend
 
 _____________________________________________________________
 ##API
-
+####User Endpoints
 Method                |        Path            | Summary
 ----------------------|------------------------|--------------------------------
 [PUT](#newuser)       | /users                 | create a user
@@ -13,13 +13,19 @@ Method                |        Path            | Summary
 [PUT](#requestFriend) | /users/:userid/friends | friend request :userid
 [POST](#acceptFriend) | /users/:userid/friends | accept :userid's request
 [DELETE](#delFriend)  | /users/:userid/friends | reject :userid's request
-[POST](#meetUp)        | /users/:userid/meets   | arrange to meet with :userid
+[POST](#meetUp)       | /users/:userid/meets   | arrange to meet with :userid
 [DELETE](#delMeet)    | /users/:userid/meets   | delete request to meet up
 [GET](#findUser)      | /users/:userid         | get :userid's location
-||
+
+####Search Endpoints
+Method                |        Path            | Summary
+----------------------|------------------------|--------------------------------
 [GET](#searchLoc)     | /search/locations      | search locations matching term
 [GET](#searchUser)    | /search/users          | search users matching term
-||
+
+####Location Endpoints
+Method                |        Path            | Summary
+----------------------|------------------------|--------------------------------
 [GET](#getLocations)  | /locations             | get locations nearest a given location
 [PUT](#putLocation)   | /locations             | create location
 [PATCH](#changeUrl)   | /locations/:locationid | update url of given location
