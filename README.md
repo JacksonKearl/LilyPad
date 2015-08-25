@@ -214,7 +214,7 @@ pin OR token | text    |
 *NONE*
 
 *Response Codes*
-- 200 -
+- 200 - request sent
 - 401 - unauthorized
 - 500 - server error
 
@@ -244,7 +244,7 @@ pin OR token | text    |
 *NONE*
 
 *Response Codes*
-- 200 -
+- 200 - request accepted
 - 401 - unauthorized
 - 500 - server error
 
@@ -274,7 +274,7 @@ pin OR token | text    |
 *NONE*
 
 *Response Codes*
-- 200 -
+- 200 - request deleted
 - 401 - unauthorized
 - 500 - server error
 
@@ -290,6 +290,7 @@ pin OR token | text    |
 <a name="meetUp"></a>
 ###POST /users/:user_id/meets
 
+Send a request to meet up with a friend, at a given location, dictated by a deeplink to google maps.
 
 **Headers Passed**
 
@@ -307,7 +308,7 @@ pin OR token | text    |
 }
 
 *Response Codes*
-- 200 -
+- 200 - request sent
 - 401 - unauthorized
 - 500 - server error
 
@@ -323,6 +324,7 @@ pin OR token | text    |
 <a name="delMeet"></a>
 ###DELETE /users/:user_id/meets
 
+Delete a request to meet up.
 
 **Headers Passed**
 
@@ -353,6 +355,7 @@ location_name| text    |
 <a name="findUser"></a>
 ###GET /users/:user_id
 
+Get the location info of a friend. You must be mutual to get each other's info.
 
 **Headers Passed**
 
@@ -366,14 +369,27 @@ pin OR token | text    |
 *NONE*
 
 *Response Codes*
-- 200 -
+- 200 - got info
 - 401 - unauthorized
 - 500 - server error
 
 **Returned JSON**
 
 ```json
-{}
+{
+  "status": "success",
+  "details": "found",
+  "results": [
+    {
+      "location_id": 1,
+      "name": "MIT",
+      "latitude": "42.36",
+      "longitude": "-71.09",
+      "logo_url": "http://miter.mit.edu/wp-content/uploads/2012/08/MIT_logo_black_red.jpg",
+      "party": true
+    }
+  ]
+}
 ```
 
 
