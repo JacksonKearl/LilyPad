@@ -60,7 +60,7 @@ router.get('/users', function(req, res) {
 																													[searchPhrase]);
 
 					query.on('row', function(row) {
-						results.push({row.user_id, row.username});
+						results.push({'user_id':row.user_id, 'username':row.username});
 					});
 
 					query.on('end', function(row) {
