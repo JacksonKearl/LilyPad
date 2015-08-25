@@ -134,18 +134,10 @@ router.get('/', function(req, res) {
 	auth.validate(req, function(user) {
 		findMeetUps(user.user_id, results, function() {
 
-      var curDaysSinceEpoch = Math.floor((new Date).
-                                  getTime()/(1000*60*60*24));
-      var expireDaysSinceEpoch = curDaysSinceEpoch + 7;
-      var payload = {'user': user.username,
-                'expires': expireDaysSinceEpoch};
-      var token = jwt.encode(payload, config.secret);
-
       return res.status(200).json({'status':'success',
 										'details':'data retrived',
 										   'user':user,
-										'results':results,
-                      'token':token});
+										'results':results});
 		});
 	}, function(err){
 		return res.status(401).json(err);

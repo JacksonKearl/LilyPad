@@ -47,8 +47,13 @@ auth.validate = function(req, onSucc, onErr) {
         catch (err) {
           console.log(err);
         }
-      }
+      } else {
+        var response = {'expires':Math.floor((new Date).getTime()/(1000*60*60*24))+3,
+                           'user':results[0].username};
 
+
+        results[0].token = jwt.encode(response, secret);
+      }
       bcrypt.compare(pin, results[0].pin, function(err, res) {
         if (err) {
           return onErr({'status':'error', 'details':'some bcrypt error'});
