@@ -1,28 +1,67 @@
-# PartySpot
-Browser based applet to find the most convenient party city for you and a friend
+# LilyPad
+## Overview
+Cordova-based app to find the most convenient party city for you and a friend. Targeting iOS and Andriod. 
+
+Backend written in Node.js with express for routing, interfaces with a PostgreSQL database. 
+
+Backend currently running on a spare desktop in my room running Ubuntu Server 14.04 LTS, as such HTTPS/SSL/whatever are nowhere to be seen. To aliviate the security responsibility, users will be allowed to only use 6 digit PINs, which (hopefully...) will be distinct from their inevitable 'everything' password, making the all too likely event of a data breach affect this service and only this service. 
+
+Authentication using [bcrypt](https://github.com/ncb000gt/node.bcrypt.js/) with strength 13 for first contact, followed by an [simple-jwt](https://github.com/hokaccha/node-jwt-simple) JWT with 3 day expiration. Don't really know to what extent this secures anything, but if some poor soul were to attempt an online attack, it would take about a month to get through bcrypting all 1,000,000 possible passwords per account. 
+
+However, in the all too likely event that the database is breached, someone not using glacial hardware, or only checking the 123456 and 808080 I'm sure 90% of users will use, will get through in about a second. #ohwell. Don't know why anyone would do that though, with full database access they'd already have the ability to form all the digital friends they're clearly lacking in the real world. 
+Anyways, probably better off sniffing the plaintext PIN or JWT sent over plain HTTP requests.
+
+
+##Installing
+If you'd like to run the backend on your own computer for whatever reason, first `npm`, `nodejs`, and `psql` must be installed, then 
+
+```bash
+$ git clone https://github.com/JacksonKearl/LilyPad.git
+$ cd LilyPad/LilyPadBackend/
+$ npm install
+$ cd models/postgres/
+$ ./refresh.sh
+$ vim config.js
+$ npm start
+````
+
+The `config.js` file should look something like:
+```javascript
+module.exports = 
+{
+    "url":"postgres://[username]:[password]@[host]:[port]/[database name]",
+    "secret":"ZfegJZVbb3GtAjkYf5rketps7LZkLaxCLHcUGUr...."
+};
+```
 
 _____________________________________________________________
 ##API
+####User Endpoints
+Method                |        Path            | Summary                       | Protected?
+----------------------|------------------------|-------------------------------|---------------------------
+[PUT](#newuser)       | /users                 | create a user                 | N
+[GET](#getuser)       | /users                 | get main user info            | Y
+[PATCH](#locateuser)  | /users                 | update user's location        | Y
+[PUT](#addFav)        | /users/favorites       | add a favorite location       | Y 
+[PUT](#requestFriend) | /users/:userid/friends | friend request :userid        | Y 
+[POST](#acceptFriend) | /users/:userid/friends | accept :userid's request      | Y  
+[DELETE](#delFriend)  | /users/:userid/friends | reject :userid's request      | Y   
+[POST](#meetUp)       | /users/:userid/meets   | arrange to meet with :userid  | Y   
+[DELETE](#delMeet)    | /users/:userid/meets   | delete request to meet up     | Y 
+[GET](#findUser)      | /users/:userid         | get :userid's location        | Y  
 
-Method                |        Path            | Summary
-----------------------|------------------------|--------------------------------
-[PUT](#newuser)       | /users                 | create a user
-[GET](#getuser)       | /users                 | get main user info
-[PATCH](#locateuser)  | /users                 | update user's location
-[PUT](#addFav)        | /users/favorites       | add a favorite location
-[PUT](#requestFriend) | /users/:userid/friends | friend request :userid
-[POST](#acceptFriend) | /users/:userid/friends | accept :userid's request
-[DELETE](#delFriend)  | /users/:userid/friends | reject :userid's request
-[POST](#meetUp)        | /users/:userid/meets   | arrange to meet with :userid
-[DELETE](#delMeet)    | /users/:userid/meets   | delete request to meet up
-[GET](#findUser)      | /users/:userid         | get :userid's location
-||
-[GET](#searchLoc)     | /search/locations      | search locations matching term
-[GET](#searchUser)    | /search/users          | search users matching term
-||
-[GET](#getLocations)  | /locations             | get locations nearest a given location
-[PUT](#putLocation)   | /locations             | create location
-[PATCH](#changeUrl)   | /locations/:locationid | update url of given location
+####Search Endpoints
+Method                |        Path            | Summary                       | Protected?
+----------------------|------------------------|-------------------------------|------------------------------
+[GET](#searchLoc)     | /search/locations      | search locations matching term| N
+[GET](#searchUser)    | /search/users          | search users matching term    | Y
+
+####Location Endpoints
+Method                |        Path            | Summary                                | Protected?
+----------------------|------------------------|----------------------------------------|---------------------------
+[GET](#getLocations)  | /locations             | get locations nearest a given location | N
+[PUT](#putLocation)   | /locations             | create location                        | Y
+[PATCH](#changeUrl)   | /locations/:locationid | update url of given location           | Y
 
 <a name="newuser"></a>
 ###PUT /users
@@ -88,7 +127,7 @@ pin OR token | text    |
     "username": "newUser1",
     "pin": null,
     "last_location": 1,
-    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHBpcmVzIjoxNjY3NSwidXNlciI6Im5ld1VzZXIxIn0.o4VU8Cn9TrNXV_NhbuED-9qlxbGHnpszImQj_Q2Qu0g"
+    "token": "eyJ0eXAiOiJKV1QiLHg..."
   },
   "results": {
     "meets": [
@@ -306,6 +345,7 @@ pin OR token | text    |
   "name":"Memphis",
   "deeplink":"http://api.maps.google.com/34t5g54"
 }
+```
 
 *Response Codes*
 - 200 - request sent
@@ -589,6 +629,7 @@ pin OR token | text    |
   "longitude":-71.0921,
   "logo_url":"http://miter.mit.edu..."
 }
+```
 
 *Response Codes*
 - 202 - user deleted
@@ -627,6 +668,7 @@ pin OR token | text    |
 {
   "logo_url":"http://3.bp.blogspot..."
 }
+```
 
 *Response Codes*
 - 202 - user deleted
@@ -641,40 +683,6 @@ pin OR token | text    |
   "details": "updated"
 }
 ```
-
-
-
-
-
-
-
-<a name="deleteuser"></a>
-###DELETE /user
-
-Delete the logged-in user from the database
-
-**Headers Passed**
-
-*NONE*
-
-**Passed JSON**
-
-*NONE*
-
-*Response Codes*
-- 202 - user deleted
-- 401 - unauthorized
-- 500 - server error
-
-**Returned JSON**
-
-```json
-{}
-```
-
-#####Comments
-
-Server finds user id from session. No need to send it yourself. Returns blank object.
 
 
 #Documentation Format
