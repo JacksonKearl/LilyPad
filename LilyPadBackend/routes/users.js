@@ -15,57 +15,57 @@ router.put('/', function(req, res) {
 	if (!(req.get('username') && req.get('pin'))) {
 		console.log('PUT ERROR! Insufficient data.', req.body);
 		return res.status(400).json({'status': 'error',
-						'details': 'Insufficient data'});
+		'details': 'Insufficient data'});
 	}
 
 	pg.connect(connectionString, function(err, client, done) {
 
 
-    var pin = req.get('pin');
+		var pin = req.get('pin');
 
-	  bcrypt.hash(pin, 13, function(err, hash) {
+		bcrypt.hash(pin, 13, function(err, hash) {
 			if (err) {
 				return res.status(500).json({'status':'error',
-								'details':'bcrypt error'});
+				'details':'bcrypt error'});
 			}
 			var query = client.query('SELECT * FROM lilypad.create_user($1,$2)',
-							[req.get('username'),
-							hash,]
-						);
+			[req.get('username'),
+			hash,]
+		);
 
-			query.on('row', function(row) {
-				results.push(row);
-			});
+		query.on('row', function(row) {
+			results.push(row);
+		});
 
-			query.on('end', function(row) {
-				console.log('POST success! Added user', req.body);
-				client.end();
-				var curDaysSinceEpoch = Math.floor((new Date).
-																			getTime()/(1000*60*60*24));
-				var expireDaysSinceEpoch = curDaysSinceEpoch + 3;
-				var payload = {'user': req.get('username'),
-										'expires': expireDaysSinceEpoch};
-				var token = jwt.encode(payload, config.secret);
+		query.on('end', function(row) {
+			console.log('POST success! Added user', req.body);
+			client.end();
+			var curDaysSinceEpoch = Math.floor((new Date).
+			getTime()/(1000*60*60*24));
+			var expireDaysSinceEpoch = curDaysSinceEpoch + 3;
+			var payload = {'user': req.get('username'),
+			'expires': expireDaysSinceEpoch};
+			var token = jwt.encode(payload, config.secret);
 
-				return res.status(201).json({'status':'success',
-																		'details':'user added',
-																			'token':token});
-			});
-			query.on('error', function(error) {
+			return res.status(201).json({'status':'success',
+			'details':'user added',
+			'token':token});
+		});
+		query.on('error', function(error) {
 
-				console.log('PUT ERROR! Possible repeat name', error);
-				client.end();
-				return res.status(500).json({'status':'error',
-								'details':'Possible repeat name'});
-			});
+			console.log('PUT ERROR! Possible repeat name', error);
+			client.end();
+			return res.status(500).json({'status':'error',
+			'details':'Possible repeat name'});
 		});
 	});
+});
 });
 
 var findFavorites = function(user_id, results, onSuc){
 	pg.connect(connectionString, function(err, client, done) {
 		var favoriteQuery = client.query('SELECT * FROM lilypad.favorites ' +
-																							'WHERE user_id = ' + user_id);
+		'WHERE user_id = ' + user_id);
 
 		favoriteQuery.on('row', function(row) {
 			results.favorites.push(row);
@@ -83,8 +83,8 @@ var findFavorites = function(user_id, results, onSuc){
 var findFriends = function(user_id, results, onSuc){
 	pg.connect(connectionString, function(err, client, done) {
 		var friendQuery = client.query('SELECT * FROM lilypad.friends ' +
-																						'WHERE partyA = ' + user_id +
-																						' OR partyB = ' + user_id);
+		'WHERE partyA = ' + user_id +
+		' OR partyB = ' + user_id);
 
 		friendQuery.on('row', function(row) {
 			if (row.status === 'mutual') {
@@ -109,7 +109,7 @@ var findFriends = function(user_id, results, onSuc){
 var findMeetUps = function(user_id, results, onSuc){
 	pg.connect(connectionString, function(err, client, done) {
 		var meetUpQuery = client.query('SELECT * FROM lilypad.meets ' +
-																					' WHERE requestee = ' + user_id );
+		' WHERE requestee = ' + user_id );
 
 		meetUpQuery.on('row', function(row) {
 			results.meets.push(row);
@@ -125,16 +125,15 @@ var findMeetUps = function(user_id, results, onSuc){
 
 router.get('/', function(req, res) {
 	var results = {'meets':[],
-						 'favorites':[],
-							 'friends':{'mutual':[],
-												 'pending':[],
-											 'requested':[]}
-								};
+	'favorites':[],
+	'friends':{'mutual':[],
+	'pending':[],
+	'requested':[]}
+	};
 
 	auth.validate(req, function(user) {
 		findMeetUps(user.user_id, results, function() {
-
-      return res.status(200).json({'status':'success',
+			return res.status(200).json({'status':'success',
 										'details':'data retrived',
 										   'user':user,
 										'results':results});
@@ -153,19 +152,19 @@ router.patch('/', function(req, res) {
 		auth.validate(req, function(user) {
 
 			var addFav = client.query('UPDATE lilypad.people SET last_location=$1 '+
-																					' WHERE user_id = $2',
-																					[cleanser.numberify(req.get('location_id')),
-																					user.user_id]);
+			' WHERE user_id = $2',
+			[cleanser.numberify(req.get('location_id')),
+			user.user_id]);
 
 			addFav.on('end', function(row) {
 				client.end();
 				return res.status(201).json({'status':'success',
-																		'details':'location set'});
+				'details':'location set'});
 			});
 			addFav.on('error', function(row) {
 				client.end();
 				return res.status(500).json({'status':'error',
-																		'details':'unknown error'});
+				'details':'unknown error'});
 			});
 		}, function (err) {
 			client.end();
@@ -186,7 +185,7 @@ router.get('/:user_id', function(req, res) {
 			pg.connect(connectionString, function(err, client, done) {
 
 				var query = client.query('SELECT * FROM ' +
-																	'lilypad.get_user_location($1)', [id]);
+				'lilypad.get_user_location($1)', [id]);
 
 				query.on('row', function(row) {
 					results.push(row);
@@ -195,7 +194,7 @@ router.get('/:user_id', function(req, res) {
 				query.on('error', function(row) {
 					client.end();
 					return res.status(500).json({'status':'error',
-																			'details':'unknown error'});
+					'details':'unknown error'});
 				});
 
 				query.on('end', function(row) {
@@ -204,18 +203,18 @@ router.get('/:user_id', function(req, res) {
 						console.log('GET success! Found user.');
 						client.end();
 						return res.status(200).json({'status':'success',
-										'details':'found',
-										'results': results });
+						'details':'found',
+						'results': results });
 					} else if (results){
 						console.log('GET ERROR! User no location');
 						client.end();
 						return res.status(404).json({'status':'error',
-										'details':'user no location'});
+						'details':'user no location'});
 					} else {
 						console.log('GET ERROR! User not found');
 						client.end();
 						return res.status(404).json({'status':'error',
-										'details':'user not found'});
+						'details':'user not found'});
 					}
 				});
 			})
@@ -232,25 +231,25 @@ router.put('/favorites', function(req, res) {
 
 	if(!(req.get('username') && req.get('location_id'))) {
 		return res.status(500).json({'status':'error',
-																'details':'no headers'});
+		'details':'no headers'});
 	}
 
 	pg.connect(connectionString, function(err, client, done) {
 		auth.validate(req, function(user) {
 			var addFav = client.query('INSERT INTO lilypad.favorites '+
-																			'(user_id,location_id) VALUES '+
-																			'(' + user.user_id +
-																			',' + req.get('location_id') +
-																			')');
+			'(user_id,location_id) VALUES '+
+			'(' + user.user_id +
+			',' + req.get('location_id') +
+			')');
 			addFav.on('end', function(row) {
 				client.end();
 				return res.status(201).json({'status':'success',
-																		'details':'favorited location'});
+				'details':'favorited location'});
 			});
 			addFav.on('error', function(row) {
 				client.end();
 				return res.status(500).json({'status':'error',
-																		'details':'possible prevous fav'});
+				'details':'possible prevous fav'});
 			});
 		}, function (err) {
 			client.end();
@@ -266,42 +265,42 @@ router.put('/:user_id/friends', function(req, res) {
 
 	if(!(req.get('username'))) {
 		return res.status(500).json({'status':'error',
-																'details':'no headers'});
+		'details':'no headers'});
 	}
 
 	pg.connect(connectionString, function(err, client, done) {
 		auth.validate(req, function(user) {
 			auth.requestRecievedFriends(user.user_id, req.get('user_id'),
-																																function() {
+			function() {
 				var addFav = client.query('UPDATE lilypad.friends SET '+
-											' status=\'mutual\' WHERE partya = $1 and partyb = $2',
-											[id, user.user_id]);
+				' status=\'mutual\' WHERE partya = $1 and partyb = $2',
+				[id, user.user_id]);
 				addFav.on('end', function(row) {
 					client.end();
 					return res.status(201).json({'status':'success',
-																			'details':'confirmed request'});
+					'details':'confirmed request'});
 				});
 				addFav.on('error', function(row) {
 					client.end();
 					return res.status(500).json({'status':'error',
-																			'details':'unknown error'});
+					'details':'unknown error'});
 				});
 
 			}, function(proceed){
 				var addFav = client.query('INSERT INTO lilypad.friends '+
-																	'(partya,partyb, status) VALUES ('+
-																	user.user_id + ',' + id +
-																	',\'pending\')');
+				'(partya,partyb, status) VALUES ('+
+				user.user_id + ',' + id +
+				',\'pending\')');
 
 				addFav.on('end', function(row) {
 					client.end();
 					return res.status(201).json({'status':'success',
-																			'details':'request sent'});
+					'details':'request sent'});
 				});
 				addFav.on('error', function(row) {
 					client.end();
 					return res.status(500).json({'status':'error',
-																			'details':'unknown error'});
+					'details':'unknown error'});
 				});
 			})
 		}, function (err) {
@@ -319,18 +318,18 @@ router.delete('/:user_id/friends', function(req, res) {
 	pg.connect(connectionString, function(err, client, done) {
 		auth.validate(req, function(user) {
 			var addFav = client.query('DELETE FROM lilypad.friends '+
-																					' WHERE partya = $1 and partyb = $2',
-																					[id, user.user_id]);
+			' WHERE partya = $1 and partyb = $2',
+			[id, user.user_id]);
 
 			addFav.on('end', function(row) {
 				client.end();
 				return res.status(201).json({'status':'success',
-																		'details':'request gone'});
+				'details':'request gone'});
 			});
 			addFav.on('error', function(row) {
 				client.end();
 				return res.status(500).json({'status':'error',
-																		'details':'unknown error'});
+				'details':'unknown error'});
 			});
 		}, function (err) {
 			client.end();
@@ -347,17 +346,17 @@ router.post('/:user_id/friends', function(req, res) {
 	pg.connect(connectionString, function(err, client, done) {
 		auth.validate(req, function(user) {
 			var addFav = client.query('UPDATE lilypad.friends '+
-										' SET status=\'mutual\' WHERE partya = $1 and partyb = $2',
-										 [id, user.user_id]);
+			' SET status=\'mutual\' WHERE partya = $1 and partyb = $2',
+			[id, user.user_id]);
 			addFav.on('end', function(row) {
 				client.end();
 				return res.status(201).json({'status':'success',
-																		'details':'confirmed request'});
+				'details':'confirmed request'});
 			});
 			addFav.on('error', function(row) {
 				client.end();
 				return res.status(500).json({'status':'error',
-																		'details':'unknown error'});
+				'details':'unknown error'});
 			});
 		}, function (err) {
 			client.end();
@@ -369,7 +368,7 @@ router.post('/:user_id/friends', function(req, res) {
 router.post('/:user_id/meets', function(req, res) {
 	if (!(req.body.name && req.body.deeplink)){
 		return res.status(400).json({'status':'error',
-																'details':'insufficaint data'});
+		'details':'insufficaint data'});
 	}
 	auth.validate(req,
 		function(user) {
@@ -377,11 +376,11 @@ router.post('/:user_id/meets', function(req, res) {
 				pg.connect(connectionString, function(err, client, done) {
 					var query = client.query(cleanser(
 						'INSERT INTO lilypad.meets VALUES (%L,%L,%L,%L);',
-									user.user_id,
-									parseInt(req.params.user_id,10),
-									req.body.name,
-									req.body.deeplink)
-								);
+						user.user_id,
+						parseInt(req.params.user_id,10),
+						req.body.name,
+						req.body.deeplink)
+					);
 
 					query.on('row', function(row) {
 						results.push(row);
@@ -391,66 +390,66 @@ router.post('/:user_id/meets', function(req, res) {
 						console.log('POST success! Invite sent!', req.body);
 						client.end();
 						return res.status(201).json({'status':'success',
-										'details':'Invite Sent'});
+						'details':'Invite Sent'});
 					});
 					query.on('error', function(error) {
 						console.log('POST ERROR! Unknown error', error);
 						client.end();
 						return res.status(500).json({'status':'error',
-										'details':'Unknown error'});
+						'details':'Unknown error'});
 					});
 				})}, function(err) {
 					return res.status(401).json(err);
 				})
 
-		}, function(err) {
-			return res.status(401).json(err)
+			}, function(err) {
+				return res.status(401).json(err)
+			}
+		);
+
+	});
+
+
+	router.delete('/:user_id/meets', function(req, res) {
+		if (!req.get('location_name')) {
+			return res.status(400).json({'status':'error', 'details':'need location_name header'})
 		}
-	);
+		auth.validate(req,
+			function(user) {
+				auth.mutualFriends(user.user_id, req.params.user_id, function() {
+					pg.connect(connectionString, function(err, client, done) {
+						var query = client.query(cleanser(
+							'DELETE FROM lilypad.meets WHERE requester = %s AND requestee = %s AND name = %L;',
+							parseInt(req.params.user_id,10),
+							user.user_id,
+							req.get('location_name')
+						));
 
-});
+						query.on('row', function(row) {
+							results.push(row);
+						});
 
+						query.on('end', function(row) {
+							console.log('DELETE success! Invite Deleted!', req.body);
+							client.end();
+							return res.status(201).json({'status':'success',
+							'details':'Invite Deleted'});
+						});
+						query.on('error', function(error) {
+							console.log('DELETE ERROR! Unknown error', error);
+							client.end();
+							return res.status(500).json({'status':'error',
+							'details':'Unknown error'});
+						});
+					})}, function(err) {
+						return res.status(401).json(err);
+					})
 
-router.delete('/:user_id/meets', function(req, res) {
-	if (!req.get('location_name')) {
-		return res.status(400).json({'status':'error', 'details':'need location_name header'})
-	}
-	auth.validate(req,
-		function(user) {
-			auth.mutualFriends(user.user_id, req.params.user_id, function() {
-				pg.connect(connectionString, function(err, client, done) {
-          var query = client.query(cleanser(
-						'DELETE FROM lilypad.meets WHERE requester = %s AND requestee = %s AND name = %L;',
-									parseInt(req.params.user_id,10),
-                  user.user_id,
-                  req.get('location_name')
-								));
+				}, function(err) {
+					return res.status(401).json(err)
+				}
+			);
 
-					query.on('row', function(row) {
-						results.push(row);
-					});
+		});
 
-					query.on('end', function(row) {
-						console.log('DELETE success! Invite Deleted!', req.body);
-						client.end();
-						return res.status(201).json({'status':'success',
-										'details':'Invite Deleted'});
-					});
-					query.on('error', function(error) {
-						console.log('DELETE ERROR! Unknown error', error);
-						client.end();
-						return res.status(500).json({'status':'error',
-										'details':'Unknown error'});
-					});
-				})}, function(err) {
-					return res.status(401).json(err);
-				})
-
-		}, function(err) {
-			return res.status(401).json(err)
-		}
-	);
-
-});
-
-module.exports = router;
+		module.exports = router;
