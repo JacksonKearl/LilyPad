@@ -632,7 +632,7 @@ pin OR token | text    |
 ```
 
 *Response Codes*
-- 202 - user deleted
+- 201 - location added
 - 401 - unauthorized
 - 500 - server error (duplicate?)
 
