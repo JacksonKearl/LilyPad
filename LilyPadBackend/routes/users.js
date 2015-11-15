@@ -186,7 +186,7 @@ router.get('/:user_id', function(req, res) {
             pg.connect(connectionString, function(err, client, done) {
 
                 var query = client.query('SELECT * FROM ' +
-                'lilypad.get_user_location($1)', [id]);
+                'lilypad.get_user_location($1); SELECT username FROM lilypad.people WHERE user_id = $1;', [id]);
 
                 query.on('row', function(row) {
                     results.push(row);
