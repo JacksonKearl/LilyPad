@@ -221,6 +221,8 @@ router.get('/:user_id', function(req, res) {
                 query.on('end', function(row) {
                     console.log(results);
                     getUsername(id, function (name) {
+                        console.log('name is',name);
+                        
                         if (results[0].name) {
                             console.log('GET success! Found user.');
                             client.end();
