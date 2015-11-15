@@ -1,19 +1,19 @@
 # LilyPad
 ## Overview
-Cordova-based app to find the most convenient party city for you and a friend. Targeting iOS and Andriod. 
+Cordova-based app to find the most convenient party city for you and a friend. Targeting iOS and Andriod.
 
-Backend written in Node.js with express for routing, interfaces with a PostgreSQL database. 
+Backend written in Node.js with express for routing, interfaces with a PostgreSQL database.
 
-Backend currently running on a spare desktop in my room running Ubuntu Server 14.04 LTS, as such HTTPS/SSL/whatever are nowhere to be seen. To aliviate the security responsibility, users will be allowed to only use 6 digit PINs, which (hopefully...) will be distinct from their inevitable 'everything' password, making the all too likely event of a data breach affect this service and only this service. 
+Backend currently running on a spare desktop in my room running Ubuntu Server 14.04 LTS, as such HTTPS/SSL/whatever are nowhere to be seen. To aliviate the security responsibility, users will be allowed to only use 6 digit PINs, which (hopefully...) will be distinct from their inevitable 'everything' password, making the all too likely event of a data breach affect this service and only this service.
 
-Authentication using [bcrypt](https://github.com/ncb000gt/node.bcrypt.js/) with strength 13 for first contact, followed by an [simple-jwt](https://github.com/hokaccha/node-jwt-simple) JWT with 3 day expiration. Don't really know to what extent this secures anything, but if some poor soul were to attempt an online attack, it would take about a month to get through bcrypting all 1,000,000 possible passwords per account. 
+Authentication using [bcrypt](https://github.com/ncb000gt/node.bcrypt.js/) with strength 13 for first contact, followed by an [simple-jwt](https://github.com/hokaccha/node-jwt-simple) JWT with 3 day expiration. Don't really know to what extent this secures anything, but if some poor soul were to attempt an online attack, it would take about a month to get through bcrypting all 1,000,000 possible passwords per account.
 
-However, in the all too likely event that the database is breached, someone not using glacial hardware, or only checking the 123456 and 808080 I'm sure 90% of users will use, will get through in about a second. #ohwell. Don't know why anyone would do that though, with full database access they'd already have the ability to form all the digital friends they're clearly lacking in the real world. 
+However, in the all too likely event that the database is breached, someone not using glacial hardware, or only checking the 123456 and 808080 I'm sure 90% of users will use, will get through in about a second. #ohwell. Don't know why anyone would do that though, with full database access they'd already have the ability to form all the digital friends they're clearly lacking in the real world.
 Anyways, probably better off sniffing the plaintext PIN or JWT sent over plain HTTP requests.
 
 
 ##Installing
-If you'd like to run the backend on your own computer for whatever reason, first `npm`, `nodejs`, and `psql` must be installed, then 
+If you'd like to run the backend on your own computer for whatever reason, first `npm`, `nodejs`, and `psql` must be installed, then
 
 ```bash
 $ git clone https://github.com/JacksonKearl/LilyPad.git
@@ -27,7 +27,7 @@ $ npm start
 
 The `config.js` file should look something like:
 ```javascript
-module.exports = 
+module.exports =
 {
     "url":"postgres://[username]:[password]@[host]:[port]/[database name]",
     "secret":"ZfegJZVbb3GtAjkYf5rketps7LZkLaxCLHcUGUr...."
@@ -42,12 +42,12 @@ Method                |        Path            | Summary                       |
 [PUT](#newuser)       | /users                 | create a user                 | N
 [GET](#getuser)       | /users                 | get main user info            | Y
 [PATCH](#locateuser)  | /users                 | update user's location        | Y
-[PUT](#addFav)        | /users/favorites       | add a favorite location       | Y 
-[PUT](#requestFriend) | /users/:userid/friends | friend request :userid        | Y 
+[PUT](#addFav)        | /users/favorites       | add a favorite location       | Y
+[PUT](#requestFriend) | /users/:userid/friends | friend request :userid        | Y
 [POST](#acceptFriend) | /users/:userid/friends | accept :userid's request      | Y  
 [DELETE](#delFriend)  | /users/:userid/friends | reject :userid's request      | Y   
 [POST](#meetUp)       | /users/:userid/meets   | arrange to meet with :userid  | Y   
-[DELETE](#delMeet)    | /users/:userid/meets   | delete request to meet up     | Y 
+[DELETE](#delMeet)    | /users/:userid/meets   | delete request to meet up     | Y
 [GET](#findUser)      | /users/:userid         | get :userid's location        | Y  
 
 ####Search Endpoints
@@ -82,7 +82,7 @@ pin        | text    |
 *Response Codes*
 - 400 - invalid request
 - 500 - possible duplicate username
-- 201 - location was created
+- 201 - user was created
 
 **Returned JSON**
 ```json
@@ -175,7 +175,7 @@ pin OR token | text    |
 <a name="locateuser"></a>
 ###PATCH /users
 
-Set user's last_location to a given location_id.
+Set user\'s last_location to a given location_id.
 
 **Headers Passed**
 
@@ -190,7 +190,7 @@ location_id  | serial  |
 *NONE*
 
 *Response Codes*
-- 200 - location changed
+- 200 - user changed
 - 401 - unauthorized
 - 500 - server error
 
@@ -395,7 +395,7 @@ location_name| text    |
 <a name="findUser"></a>
 ###GET /users/:user_id
 
-Get the location info of a friend. You must be mutual to get each other's info.
+Get the location info of a friend. You must be mutual to get each other\'s info.
 
 **Headers Passed**
 
@@ -603,7 +603,7 @@ party        | text    |
 
 #####Comments
 
-Don't really know what units "distance" is in. Probably kilometers.
+Don\'t really know what units "distance" is in. Probably kilometers.
 
 
 <a name="putLocation"></a>
@@ -653,7 +653,7 @@ Two locations may not have same position to hundredths of a degree.
 <a name="changeUrl"></a>
 ###PATCH /locations/:location_id
 
-Add or update a location's logo
+Add or update a location\'s logo
 
 **Headers Passed**
 
