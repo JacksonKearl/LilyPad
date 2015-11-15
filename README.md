@@ -42,6 +42,7 @@ Method                |        Path            | Summary                       |
 [PUT](#newuser)       | /users                 | create a user                 | N
 [GET](#getuser)       | /users                 | get main user info            | Y
 [PATCH](#locateuser)  | /users                 | update user's location        | Y
+[DELETE](#deluser)    | /users                 | delete user account           | Y
 [PUT](#addFav)        | /users/favorites       | add a favorite location       | Y
 [PUT](#requestFriend) | /users/:userid/friends | friend request :userid        | Y
 [POST](#acceptFriend) | /users/:userid/friends | accept :userid's request      | Y  
@@ -200,6 +201,36 @@ location_id  | serial  |
 {
   "status": "success",
   "details": "location set"
+}
+```
+
+<a name="deluser"></a>
+###DELETE /users
+
+Delete a user's account.
+
+**Headers Passed**
+
+Key          | Type    |
+-------------|---------|
+username     | text    |
+pin OR token | text    |
+
+**Passed JSON**
+
+*NONE*
+
+*Response Codes*
+- 200 - user deleted
+- 401 - unauthorized
+- 500 - server error
+
+**Returned JSON**
+
+```json
+{
+  "status": "success",
+  "details": "account deleted"
 }
 ```
 

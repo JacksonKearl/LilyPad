@@ -39,7 +39,7 @@ router.put('/', function(req, res) {
         });
 
         query.on('end', function(row) {
-            console.log('POST success! Added user', req.body);
+            console.log('PUT success! Added user', req.body);
             client.end();
             var curDaysSinceEpoch = Math.floor((new Date).
             getTime()/(1000*60*60*24));
@@ -54,7 +54,7 @@ router.put('/', function(req, res) {
         });
         query.on('error', function(error) {
 
-            console.log('PUT ERROR! Possible repeat name', error);
+            //console.log('PUT ERROR! Possible repeat name', error);
             client.end();
             return res.status(500).json({'status':'error',
             'details':'Possible repeat name'});
@@ -130,18 +130,18 @@ router.get('/', function(req, res) {
     'friends':{'mutual':[],
     'pending':[],
     'requested':[]}
-    };
+};
 
-    auth.validate(req, function(user) {
-        findMeetUps(user.user_id, results, function() {
-            return res.status(200).json({'status':'success',
-                                        'details':'data retrived',
-                                           'user':user,
-                                        'results':results});
-        });
-    }, function(err){
-        return res.status(401).json(err);
+auth.validate(req, function(user) {
+    findMeetUps(user.user_id, results, function() {
+        return res.status(200).json({'status':'success',
+        'details':'data retrived',
+        'user':user,
+        'results':results});
     });
+}, function(err){
+    return res.status(401).json(err);
+});
 });
 
 
@@ -174,6 +174,29 @@ router.patch('/', function(req, res) {
     });
 });
 
+router.delete('/', function(req, res) {
+    pg.connect(connectionString, function(err, client, done) {
+        auth.validate(req, function(user) {
+
+            var deleteQuery = client.query('DELETE FROM lilypad.people WHERE user_id=$1', [user.user_id]);
+
+            deleteQuery.on('end', function(row) {
+                client.end();
+                return res.status(200).json({'status':'success',
+                                            'details':'account deleted'});
+            });
+            deleteQuery.on('error', function(row) {
+                client.end();
+                return res.status(500).json({'status':'error',
+                                            'details':'unknown error'});
+            });
+        }, function (err) {
+            client.end();
+            return res.status(401).json(err);
+        });
+    });
+});
+
 var getUsername = function (id, then) {
     pg.connect(connectionString, function(err, client, done) {
 
@@ -182,12 +205,6 @@ var getUsername = function (id, then) {
 
         query.on('row', function(row) {
             results.push(row);
-        });
-
-        query.on('error', function(row) {
-            client.end();
-            return res.status(500).json({'status':'error',
-            'details':'unknown error'});
         });
 
         query.on('end', function(row) {
@@ -222,25 +239,25 @@ router.get('/:user_id', function(req, res) {
                     console.log(results);
                     getUsername(id, function (name) {
                         console.log('name is',name);
-                        
+
                         if (results[0].name) {
                             console.log('GET success! Found user.');
                             client.end();
                             return res.status(200).json({'status':'success',
-                                                        'details':'found',
-                                                           'name':name,
-                                                        'results': results });
+                            'details':'found',
+                            'name':name,
+                            'results': results });
                         } else if (results){
                             console.log('GET ERROR! User no location');
                             client.end();
                             return res.status(404).json({'status':'error',
-                                                           'name':name,
-                                                        'details':'user no location'});
+                            'name':name,
+                            'details':'user no location'});
                         } else {
                             console.log('GET ERROR! User not found');
                             client.end();
                             return res.status(404).json({'status':'error',
-                                                        'details':'user not found'});
+                            'details':'user not found'});
                         }
                     });
                 });
@@ -425,58 +442,57 @@ router.post('/:user_id/meets', function(req, res) {
                         return res.status(500).json({'status':'error',
                         'details':'Unknown error'});
                     });
-                });}, function(err) {
-                    return res.status(401).json(err);
                 });
-
             }, function(err) {
                 return res.status(401).json(err);
-            }
-        );
+            });
 
-    });
-
-
-    router.delete('/:user_id/meets', function(req, res) {
-        if (!req.get('location_name')) {
-            return res.status(400).json({'status':'error', 'details':'need location_name header'});
+        }, function(err) {
+            return res.status(401).json(err);
         }
-        auth.validate(req,
-            function(user) {
-                auth.mutualFriends(user.user_id, req.params.user_id, function() {
-                    pg.connect(connectionString, function(err, client, done) {
-                        var query = client.query(cleanser(
-                            'DELETE FROM lilypad.meets WHERE requester = %s AND requestee = %s AND name = %L;',
-                            parseInt(req.params.user_id,10),
-                            user.user_id,
-                            req.get('location_name')
-                        ));
+    );
+});
 
-                        query.on('row', function(row) {
-                            results.push(row);
-                        });
 
-                        query.on('end', function(row) {
-                            console.log('DELETE success! Invite Deleted!', req.body);
-                            client.end();
-                            return res.status(201).json({'status':'success',
-                            'details':'Invite Deleted'});
-                        });
-                        query.on('error', function(error) {
-                            console.log('DELETE ERROR! Unknown error', error);
-                            client.end();
-                            return res.status(500).json({'status':'error',
-                            'details':'Unknown error'});
-                        });
-                    });}, function(err) {
-                        return res.status(401).json(err);
+router.delete('/:user_id/meets', function(req, res) {
+    if (!req.get('location_name')) {
+        return res.status(400).json({'status':'error', 'details':'need location_name header'});
+    }
+    auth.validate(req,
+        function(user) {
+            auth.mutualFriends(user.user_id, req.params.user_id, function() {
+                pg.connect(connectionString, function(err, client, done) {
+                    var query = client.query(cleanser(
+                        'DELETE FROM lilypad.meets WHERE requester = %s AND requestee = %s AND name = %L;',
+                        parseInt(req.params.user_id,10),
+                        user.user_id,
+                        req.get('location_name')
+                    ));
+
+                    query.on('row', function(row) {
+                        results.push(row);
                     });
 
-                }, function(err) {
-                    return res.status(401).json(err);
-                }
-            );
+                    query.on('end', function(row) {
+                        console.log('DELETE success! Invite Deleted!', req.body);
+                        client.end();
+                        return res.status(201).json({'status':'success',
+                        'details':'Invite Deleted'});
+                    });
+                    query.on('error', function(error) {
+                        console.log('DELETE ERROR! Unknown error', error);
+                        client.end();
+                        return res.status(500).json({'status':'error',
+                        'details':'Unknown error'});
+                    });
+                });
+            }, function(err) {
+                return res.status(401).json(err);
+            });
+        }, function(err) {
+            return res.status(401).json(err);
+        }
+    );
+});
 
-        });
-
-        module.exports = router;
+module.exports = router;
