@@ -72,13 +72,13 @@ var findFavorites = function(user_id, results, onSuc){
         });
 
         favoriteQuery.on('end', function(row) {
-            client.end()
+            client.end();
             return onSuc(results);
         });
 
 
     });
-}
+};
 
 var findFriends = function(user_id, results, onSuc){
     pg.connect(connectionString, function(err, client, done) {
@@ -100,7 +100,7 @@ var findFriends = function(user_id, results, onSuc){
         });
 
         friendQuery.on('end', function(row) {
-            client.end()
+            client.end();
             return findFavorites(user_id, results, onSuc);
         });
     });
@@ -116,7 +116,7 @@ var findMeetUps = function(user_id, results, onSuc){
         });
 
         meetUpQuery.on('end', function(row) {
-            client.end()
+            client.end();
             return findFriends(user_id, results, onSuc);
         });
     });
@@ -217,10 +217,10 @@ router.get('/:user_id', function(req, res) {
                         'details':'user not found'});
                     }
                 });
-            })
+            });
         }, function(error) {
             return res.status(401).json(error);
-        })
+        });
     }, function(error) {
         return res.status(401).json(error);
     });
@@ -302,7 +302,7 @@ router.put('/:user_id/friends', function(req, res) {
                     return res.status(500).json({'status':'error',
                     'details':'unknown error'});
                 });
-            })
+            });
         }, function (err) {
             client.end();
             return res.status(401).json(err);
@@ -398,12 +398,12 @@ router.post('/:user_id/meets', function(req, res) {
                         return res.status(500).json({'status':'error',
                         'details':'Unknown error'});
                     });
-                })}, function(err) {
+                });}, function(err) {
                     return res.status(401).json(err);
-                })
+                });
 
             }, function(err) {
-                return res.status(401).json(err)
+                return res.status(401).json(err);
             }
         );
 
@@ -412,7 +412,7 @@ router.post('/:user_id/meets', function(req, res) {
 
     router.delete('/:user_id/meets', function(req, res) {
         if (!req.get('location_name')) {
-            return res.status(400).json({'status':'error', 'details':'need location_name header'})
+            return res.status(400).json({'status':'error', 'details':'need location_name header'});
         }
         auth.validate(req,
             function(user) {
@@ -441,12 +441,12 @@ router.post('/:user_id/meets', function(req, res) {
                             return res.status(500).json({'status':'error',
                             'details':'Unknown error'});
                         });
-                    })}, function(err) {
+                    });}, function(err) {
                         return res.status(401).json(err);
-                    })
+                    });
 
                 }, function(err) {
-                    return res.status(401).json(err)
+                    return res.status(401).json(err);
                 }
             );
 
