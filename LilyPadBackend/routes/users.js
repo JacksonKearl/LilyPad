@@ -174,7 +174,27 @@ router.patch('/', function(req, res) {
     });
 });
 
+var getUsername = function (id, then) {
+    pg.connect(connectionString, function(err, client, done) {
 
+        var query = client.query('SELECT username FROM ' +
+        'lilypad.people WHERE user_id = $1;', [id]);
+
+        query.on('row', function(row) {
+            results.push(row);
+        });
+
+        query.on('error', function(row) {
+            client.end();
+            return res.status(500).json({'status':'error',
+            'details':'unknown error'});
+        });
+
+        query.on('end', function(row) {
+            then(results.username);
+        });
+    });
+};
 
 
 router.get('/:user_id', function(req, res) {
@@ -200,23 +220,27 @@ router.get('/:user_id', function(req, res) {
 
                 query.on('end', function(row) {
                     console.log(results);
-                    if (results[0].name) {
-                        console.log('GET success! Found user.');
-                        client.end();
-                        return res.status(200).json({'status':'success',
-                        'details':'found',
-                        'results': results });
-                    } else if (results){
-                        console.log('GET ERROR! User no location');
-                        client.end();
-                        return res.status(404).json({'status':'error',
-                        'details':'user no location'});
-                    } else {
-                        console.log('GET ERROR! User not found');
-                        client.end();
-                        return res.status(404).json({'status':'error',
-                        'details':'user not found'});
-                    }
+                    getUsername(id, function (name) {
+                        if (results[0].name) {
+                            console.log('GET success! Found user.');
+                            client.end();
+                            return res.status(200).json({'status':'success',
+                                                        'details':'found',
+                                                           'name':name,
+                                                        'results': results });
+                        } else if (results){
+                            console.log('GET ERROR! User no location');
+                            client.end();
+                            return res.status(404).json({'status':'error',
+                                                           'name':name,
+                                                        'details':'user no location'});
+                        } else {
+                            console.log('GET ERROR! User not found');
+                            client.end();
+                            return res.status(404).json({'status':'error',
+                                                        'details':'user not found'});
+                        }
+                    });
                 });
             });
         }, function(error) {
