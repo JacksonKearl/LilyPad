@@ -10,28 +10,28 @@ auth = {};
 
 auth.validate = function(req, onSucc, onErr) {
 
-	if (!(req.get('username') && req.get('pin') || req.get('token'))) {
-		console.log('GET ERROR! Insufficient data.', req.body);
-		return onErr({'status': 'error', 'details': 'Insufficient data'});
-	}
+    if (!(req.get('username') && req.get('pin') || req.get('token'))) {
+        console.log('GET ERROR! Insufficient data.', req.body);
+        return onErr({'status': 'error', 'details': 'Insufficient data'});
+    }
 
-	var name = req.get('username');
-	var pin  = req.get('pin');
+    var name = req.get('username');
+    var pin  = req.get('pin');
 
 
-	var results = []
-	pg.connect(connectionString, function(err, client, done){
+    var results = [];
+    pg.connect(connectionString, function(err, client, done){
     var query = client.query(cleanser('SELECT * FROM lilypad.people '+
-																						' WHERE username = %L',name));
-		query.on('row', function(row) {
-			results.push(row);
-		});
+                                                ' WHERE username = %L',name));
+        query.on('row', function(row) {
+            results.push(row);
+        });
 
-		query.on('end', function(row) {
-			client.end()
+        query.on('end', function(row) {
+            client.end();
 
       if (!results[0]){
-			  return onErr({'status':'error', 'details':'invalid username'});
+              return onErr({'status':'error', 'details':'invalid username'});
       }
       if (req.get('token')) {
         try {
@@ -62,92 +62,92 @@ auth.validate = function(req, onSucc, onErr) {
           results[0].pin = null;
           return onSucc(results[0]);
         }
-          return onErr({'status':'error', 'details':'invalid password'})
-				});
-		});
-		query.on('error', function(error) {
-			client.end();
-			console.log(error);
-			return onErr({'status':'error', 'details':'unknown error'});
-		});
-	});
+          return onErr({'status':'error', 'details':'invalid password'});
+                });
+        });
+        query.on('error', function(error) {
+            client.end();
+            console.log(error);
+            return onErr({'status':'error', 'details':'unknown error'});
+        });
+    });
 };
 
 auth.mutualFriends = function(user_id_a, user_id_b, onYes, onNo) {
-	user_id_a = cleanser.numberify(user_id_a);
-	user_id_b = cleanser.numberify(user_id_b);
-	results = [];
-	pg.connect(connectionString, function(err, client, done) {
-		var query = client.query('SELECT * FROM lilypad.friends WHERE '+
-								' status=\'mutual\' AND '+
-								'(partya = $1 AND partyb = $2 OR partya = $2 AND partyb = $1)',
-								[user_id_a, user_id_b]);
+    user_id_a = cleanser.numberify(user_id_a);
+    user_id_b = cleanser.numberify(user_id_b);
+    results = [];
+    pg.connect(connectionString, function(err, client, done) {
+        var query = client.query('SELECT * FROM lilypad.friends WHERE '+
+                                ' status=\'mutual\' AND '+
+                                '(partya = $1 AND partyb = $2 OR partya = $2 AND partyb = $1)',
+                                [user_id_a, user_id_b]);
 
-		query.on('row', function(row) {
-			results.push(row);
-		});
-		query.on('end', function(row) {
-			client.end();
-			if (results[0]) return onYes();
-			return onNo({'status':'error','details':'not friends'});
-		});
-		query.on('error', function(error) {
-			client.end();
-			console.log(error);
-			return onNo({'status':'error', 'details':'unknown error'});
-		});
-	});
+        query.on('row', function(row) {
+            results.push(row);
+        });
+        query.on('end', function(row) {
+            client.end();
+            if (results[0]) return onYes();
+            return onNo({'status':'error','details':'not friends'});
+        });
+        query.on('error', function(error) {
+            client.end();
+            console.log(error);
+            return onNo({'status':'error', 'details':'unknown error'});
+        });
+    });
 };
 
 
 auth.requestSentFriends = function(user_id_a, user_id_b, onYes, onNo) {
-	user_id_a = cleanser.numberify(user_id_a);
-	user_id_b = cleanser.numberify(user_id_b);
-	results = [];
-	pg.connect(connectionString, function(err, client, done) {
-		var query = client.query('SELECT * FROM lilypad.friends WHERE '+
-												' status=\'pending\' AND partya = $1 AND partyb = $2)',
-												[user_id_a, user_id_b]);
-		query.on('row', function(row) {
-			results.push(row);
-		});
-		query.on('end', function(row) {
-			client.end();
-			if (results[0]) return onYes();
-			return onNo({'status':'error','details':'no request sent'});
-		});
-		query.on('error', function(error) {
-			client.end();
-			console.log(error);
-			return onNo({'status':'error', 'details':'unknown error'});
-		});
-	});
+    user_id_a = cleanser.numberify(user_id_a);
+    user_id_b = cleanser.numberify(user_id_b);
+    results = [];
+    pg.connect(connectionString, function(err, client, done) {
+        var query = client.query('SELECT * FROM lilypad.friends WHERE '+
+                                                ' status=\'pending\' AND partya = $1 AND partyb = $2)',
+                                                [user_id_a, user_id_b]);
+        query.on('row', function(row) {
+            results.push(row);
+        });
+        query.on('end', function(row) {
+            client.end();
+            if (results[0]) return onYes();
+            return onNo({'status':'error','details':'no request sent'});
+        });
+        query.on('error', function(error) {
+            client.end();
+            console.log(error);
+            return onNo({'status':'error', 'details':'unknown error'});
+        });
+    });
 };
 
 
 auth.requestRecievedFriends = function(user_id_a, user_id_b, onYes, onNo) {
-	user_id_a = cleanser.numberify(user_id_a);
-	user_id_b = cleanser.numberify(user_id_b);
-	results = [];
-	pg.connect(connectionString, function(err, client, done) {
-		var query = client.query('SELECT * FROM lilypad.friends WHERE '+
-									' status=\'pending\' AND partya = $1 AND partyb = $2',
-									[user_id_b, user_id_a]);
+    user_id_a = cleanser.numberify(user_id_a);
+    user_id_b = cleanser.numberify(user_id_b);
+    results = [];
+    pg.connect(connectionString, function(err, client, done) {
+        var query = client.query('SELECT * FROM lilypad.friends WHERE '+
+                                    ' status=\'pending\' AND partya = $1 AND partyb = $2',
+                                    [user_id_b, user_id_a]);
 
-		query.on('row', function(row) {
-			results.push(row);
-		});
-		query.on('end', function(row) {
-			client.end();
-			if (results[0]) return onYes();
-			return onNo({'status':'error','details':'no request recived'});
-		});
-		query.on('error', function(error) {
-			client.end();
-			console.log(error);
-			return onNo({'status':'error', 'details':'unknown error'});
-		});
-	});
+        query.on('row', function(row) {
+            results.push(row);
+        });
+        query.on('end', function(row) {
+            client.end();
+            if (results[0]) return onYes();
+            return onNo({'status':'error','details':'no request recived'});
+        });
+        query.on('error', function(error) {
+            client.end();
+            console.log(error);
+            return onNo({'status':'error', 'details':'unknown error'});
+        });
+    });
 };
 
 module.exports = auth;
