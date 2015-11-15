@@ -175,7 +175,7 @@ pin OR token | text    |
 <a name="locateuser"></a>
 ###PATCH /users
 
-Set user\'s last_location to a given location_id.
+Set user's last_location to a given location_id.
 
 **Headers Passed**
 
@@ -395,7 +395,7 @@ location_name| text    |
 <a name="findUser"></a>
 ###GET /users/:user_id
 
-Get the location info of a friend. You must be mutual to get each other\'s info.
+Get the location info of a friend. You must be mutual to get each other's info.
 
 **Headers Passed**
 
@@ -603,7 +603,7 @@ party        | text    |
 
 #####Comments
 
-Don\'t really know what units "distance" is in. Probably kilometers.
+Don't really know what units "distance" is in. Probably kilometers.
 
 
 <a name="putLocation"></a>
@@ -653,7 +653,7 @@ Two locations may not have same position to hundredths of a degree.
 <a name="changeUrl"></a>
 ###PATCH /locations/:location_id
 
-Add or update a location\'s logo
+Add or update a location's logo
 
 **Headers Passed**
 
