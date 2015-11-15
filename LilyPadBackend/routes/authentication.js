@@ -1,3 +1,5 @@
+/*jshint -W058 */
+
 var bcrypt = require('bcrypt');
 var pg = require('pg');
 var config = require('../config.js');

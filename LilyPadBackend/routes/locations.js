@@ -1,3 +1,4 @@
+/*jshint -W058 */
 var auth = require('./authentication.js');
 var express = require('express');
 var router = express.Router();
@@ -107,7 +108,7 @@ router.patch('/:location_id', function(req, res) {
 
     var id = req.params.location_id;
 
-    var data = req.body.logo_url
+    var data = req.body.logo_url;
 
     if (!(data)){
         console.log('PUT ERROR! Insufficient data.', req.body);
@@ -141,7 +142,7 @@ router.patch('/:location_id', function(req, res) {
             });
         }, function(error){
             return res.status(400).json(error);
-        })
+        });
 
 });
 

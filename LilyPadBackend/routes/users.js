@@ -1,3 +1,4 @@
+/*jshint -W058 */
 var auth = require('./authentication.js');
 var express = require('express');
 var router = express.Router();
