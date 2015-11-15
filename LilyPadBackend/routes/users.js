@@ -199,16 +199,16 @@ router.delete('/', function(req, res) {
 
 var getUsername = function (id, then) {
     pg.connect(connectionString, function(err, client, done) {
-
+        var results = [];
         var query = client.query('SELECT username FROM ' +
-        'lilypad.people WHERE user_id = $1;', [id]);
-
+        'lilypad.people WHERE user_id = $1',[+(id)]);
         query.on('row', function(row) {
             results.push(row);
         });
 
         query.on('end', function(row) {
-            then(results.username);
+            console.log(results);
+            then(results[0].username);
         });
     });
 };
