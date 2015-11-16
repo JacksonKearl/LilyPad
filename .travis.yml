@@ -1,0 +1,11 @@
+language: node_js
+node_js:
+  - "0.10"
+
+install:
+  - cd LilyPadBackend/
+  - npm install
+  - echo "module.exports = {'secret':'devSecret'}" | config.js
+
+script:
+  - npm test
