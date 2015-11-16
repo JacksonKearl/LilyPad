@@ -704,8 +704,8 @@ pin OR token | text    |
 ```
 
 *Response Codes*
-- 202 - user deleted
-- 401 - unauthorized
+- 200 - url added
+- 400 - unauthorized
 - 500 - server error
 
 **Returned JSON**
