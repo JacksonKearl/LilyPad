@@ -146,7 +146,7 @@ router.patch('/:location_id', function(req, res) {
 
 });
 
-router.delete('/', function(req, res) {
+router.delete('/:location_id', function(req, res) {
     var key = req.get('key');
     if (key !== config.secret) {
         return res.status(401).json({'status':'error',
@@ -155,8 +155,9 @@ router.delete('/', function(req, res) {
 
     var results = [];
 
+    var id = req.params.location_id;
     pg.connect(connectionString, function(err, client, done) {
-        var query = client.query("DELETE FROM lilypad.locations");
+        var query = client.query("DELETE FROM lilypad.locations WHERE location_id = $1;", [id]);
 
         query.on('row', function(row) {
             results.push(row);

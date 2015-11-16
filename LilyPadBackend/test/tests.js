@@ -4,7 +4,7 @@ var request = require('supertest');
 var config = require('../config.js');
 
 describe('Routing', function() {
-    var url = 'http://lilypaddev.ddns.net:3000';
+    var url = 'http://localhost:3000';
 
     //TEST USERS
 
@@ -827,10 +827,35 @@ describe('Routing', function() {
                 });
         });
 
+        it('should let those in power delete locations', function (done) {
+            request(url)
+                .delete('/locations/1')
+                .set({'key':config.secret})
+                .end(function (err, res) {
+                    if (err) {
+                        throw err;
+                    }
+                    res.status.should.equal(200);
+                    done();
+                });
+        });
+
+        it('should let those in power delete locations', function (done) {
+            request(url)
+                .delete('/locations/3')
+                .set({'key':config.secret})
+                .end(function (err, res) {
+                    if (err) {
+                        throw err;
+                    }
+                    res.status.should.equal(200);
+                    done();
+                });
+        });
 
         it('should not let those not in power delete locations', function (done) {
             request(url)
-                .delete('/locations')
+                .delete('/locations/3')
                 .end(function (err, res) {
                     if (err) {
                         throw err;
@@ -842,7 +867,7 @@ describe('Routing', function() {
 
         it('should let those in power delete locations', function (done) {
             request(url)
-                .delete('/locations')
+                .delete('/locations/4')
                 .set({'key':config.secret})
                 .end(function (err, res) {
                     if (err) {
