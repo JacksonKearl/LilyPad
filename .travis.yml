@@ -2,10 +2,20 @@ language: node_js
 node_js:
   - "0.10"
 
+addons:
+  postgresql: "9.3"
+
+services:
+  - postgresql
+
 install:
   - cd LilyPadBackend/
   - npm install
-  - echo "module.exports = {'secret':'devSecret'}" > config.js
+  - echo "module.exports = {'url':'postgres://postgres@localhost/test_db','secret':'devSecret'}" > config.js
+
+before_script:
+  - psql -c 'create database test_db;' -U postgres
 
 script:
+  - nohup npm start &> /dev/null &
   - npm test
