@@ -5,7 +5,7 @@ node_js:
 install:
   - cd LilyPadBackend/
   - npm install
-  - echo "module.exports = {'secret':'devSecret'}" | config.js
+  - echo "module.exports = {'secret':'devSecret'}" > config.js
 
 script:
   - npm test
