@@ -4,7 +4,7 @@ var request = require('supertest');
 var config = require('../config.js');
 
 describe('Routing', function() {
-    var url = 'http://localhost:3000';
+    var url = 'http://lilypaddev.ddns.net:3000';
 
     //TEST USERS
 
@@ -828,7 +828,7 @@ describe('Routing', function() {
         });
 
 
-        it('should not let those not in power delete locations', function (done) {
+        it('should not let those not in power reset everything', function (done) {
             request(url)
                 .delete('/locations')
                 .end(function (err, res) {
@@ -840,7 +840,7 @@ describe('Routing', function() {
                 });
         });
 
-        it('should let those in power delete locations', function (done) {
+        it('should let those in power reset everything', function (done) {
             request(url)
                 .delete('/locations')
                 .set({'key':config.secret})
