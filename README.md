@@ -1,4 +1,4 @@
-# LilyPad
+# LilyPad [![Build Status](https://travis-ci.org/JacksonKearl/LilyPad.svg?branch=master)](https://travis-ci.org/JacksonKearl/LilyPad)
 ## Overview
 Cordova-based app to find the most convenient party city for you and a friend. Targeting iOS and Andriod.
 
