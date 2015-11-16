@@ -209,6 +209,17 @@ RETURNS SETOF lilypad.locations AS $$
 
 $$ LANGUAGE SQL VOLATILE STRICT;
 
+CREATE OR REPLACE FUNCTION lilypad.reset()
+RETURNS void AS $$
+
+	DELETE FROM lilypad.locations;
+	DELETE FROM lilypad.people;
+
+	ALTER SEQUENCE lilypad.people_user_id_seq RESTART WITH 1;
+	ALTER SEQUENCE lilypad.locations_location_id_seq RESTART WITH 1;
+
+$$ LANGUAGE SQL VOLATILE STRICT;
+
 /*
 ** Get location info for user with given username
 */
