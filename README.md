@@ -702,7 +702,7 @@ pin OR token | text    |
 ```
 
 *Response Codes*
-- 202 - url added
+- 200 - url added
 - 401 - unauthorized
 - 500 - server error
 
