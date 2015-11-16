@@ -193,7 +193,7 @@ location_id  | serial  |
 *NONE*
 
 *Response Codes*
-- 200 - user changed
+- 201 - user changed
 - 401 - unauthorized
 - 500 - server error
 
@@ -286,7 +286,7 @@ pin OR token | text    |
 *NONE*
 
 *Response Codes*
-- 200 - request sent
+- 201 - request sent
 - 401 - unauthorized
 - 500 - server error
 
@@ -316,7 +316,7 @@ pin OR token | text    |
 *NONE*
 
 *Response Codes*
-- 200 - request accepted
+- 201 - request accepted
 - 401 - unauthorized
 - 500 - server error
 
@@ -346,7 +346,7 @@ pin OR token | text    |
 *NONE*
 
 *Response Codes*
-- 200 - request deleted
+- 201 - request deleted
 - 401 - unauthorized
 - 500 - server error
 
@@ -381,7 +381,7 @@ pin OR token | text    |
 ```
 
 *Response Codes*
-- 200 - request sent
+- 201 - request sent
 - 401 - unauthorized
 - 500 - server error
 
@@ -412,7 +412,7 @@ location_name| text    |
 *NONE*
 
 *Response Codes*
-- 200 - deleted
+- 201 - deleted
 - 401 - unauthorized
 - 500 - server error
 

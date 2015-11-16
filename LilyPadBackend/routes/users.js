@@ -110,7 +110,7 @@ var findFriends = function(user_id, results, onSuc){
 var findMeetUps = function(user_id, results, onSuc){
     pg.connect(connectionString, function(err, client, done) {
         var meetUpQuery = client.query('SELECT * FROM lilypad.meets ' +
-        ' WHERE requestee = ' + user_id );
+        ' WHERE requestee = ' + user_id + 'OR requester = ' + user_id);
 
         meetUpQuery.on('row', function(row) {
             results.meets.push(row);
@@ -326,6 +326,7 @@ router.put('/:user_id/friends', function(req, res) {
                 });
                 addFav.on('error', function(row) {
                     client.end();
+                    console.log(row);
                     return res.status(500).json({'status':'error',
                     'details':'unknown error'});
                 });
@@ -343,6 +344,7 @@ router.put('/:user_id/friends', function(req, res) {
                 });
                 addFav.on('error', function(row) {
                     client.end();
+                    console.log(row);
                     return res.status(500).json({'status':'error',
                     'details':'unknown error'});
                 });
@@ -463,7 +465,9 @@ router.delete('/:user_id/meets', function(req, res) {
             auth.mutualFriends(user.user_id, req.params.user_id, function() {
                 pg.connect(connectionString, function(err, client, done) {
                     var query = client.query(cleanser(
-                        'DELETE FROM lilypad.meets WHERE requester = %s AND requestee = %s AND name = %L;',
+                        'DELETE FROM lilypad.meets WHERE ((requester = %s AND requestee = %s) OR (requestee = %s AND requester = %s)) AND name = %L;',
+                        parseInt(req.params.user_id,10),
+                        user.user_id,
                         parseInt(req.params.user_id,10),
                         user.user_id,
                         req.get('location_name')

@@ -146,4 +146,40 @@ router.patch('/:location_id', function(req, res) {
 
 });
 
+router.delete('/:location_id', function(req, res) {
+    var key = req.get('key');
+    if (key !== config.secret) {
+        return res.status(401).json({'status':'error',
+                        'details':'unauthorized'});
+    }
+
+    var results = [];
+
+    var id = req.params.location_id;
+    pg.connect(connectionString, function(err, client, done) {
+        var query = client.query("DELETE FROM lilypad.locations WHERE location_id = $1;", [id]);
+
+        query.on('row', function(row) {
+            results.push(row);
+        });
+
+        query.on('end', function(row) {
+            console.log('DELETE success!');
+            client.end();
+            return res.status(200).json({'status':'success',
+                            'details':'deleted'});
+        });
+
+        query.on('error', function(error) {
+            console.log('DELETE ERROR! unknown', error);
+            client.end();
+            return res.status(500).json({'status':'error',
+                            'details':'unknown'});
+        });
+
+    });
+
+
+});
+
 module.exports = router;
