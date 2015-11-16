@@ -6,7 +6,7 @@ Backend written in Node.js with express for routing, interfaces with a PostgreSQ
 
 Backend currently running on a spare desktop in my room running Ubuntu Server 14.04 LTS, as such HTTPS/SSL/whatever are nowhere to be seen. To aliviate the security responsibility, users will be allowed to only use 6 digit PINs, which (hopefully...) will be distinct from their inevitable 'everything' password, making the all too likely event of a data breach affect this service and only this service.
 
-Working towards full integration testing with Mocha, Supertest, and Should.js. Continuous integration testing provided by [TravisCI](https://travis-ci.org/JacksonKearl/LilyPad).
+Working towards full integration testing with Mocha, Supertest, and Should.js. Will eventually offsite the testing to TravisCI or similar.
 
 Authentication using [bcrypt](https://github.com/ncb000gt/node.bcrypt.js/) with strength 13 for first contact, followed by an [simple-jwt](https://github.com/hokaccha/node-jwt-simple) JWT with 3 day expiration. Don't really know to what extent this secures anything, but if some poor soul were to attempt an online attack, it would take about a month to get through bcrypting all 1,000,000 possible passwords per account.
 
