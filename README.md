@@ -35,3 +35,15 @@ module.exports =
     "secret":"ZfegJZVbb3GtAjkYf5rketps7LZkLaxCLHcUGUr...."
 };
 ```
+
+##Testing
+Integration testing through `mocha` and `supertest`. Tests by default run off of dev server at `lilypaddev.ddns.net`, but this can be configured in `LilyPad/test/tests.js`.
+
+To run tests:
+
+```bash
+$ cd LilyPadBackend/
+$ npm test
+```
+
+Well that wasn't too bad. 😉
