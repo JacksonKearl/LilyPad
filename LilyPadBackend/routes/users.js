@@ -14,7 +14,7 @@ router.put('/', function(req, res) {
     var results = [];
 
     if (!(req.get('username') && req.get('pin'))) {
-        console.log('PUT ERROR! Insufficient data.', req.body);
+        //console.log('PUT ERROR! Insufficient data.', req.body);
         return res.status(400).json({'status': 'error',
         'details': 'Insufficient data'});
     }
@@ -39,7 +39,7 @@ router.put('/', function(req, res) {
         });
 
         query.on('end', function(row) {
-            console.log('PUT success! Added user', req.body);
+            //console.log('PUT success! Added user', req.body);
             client.end();
             var curDaysSinceEpoch = Math.floor((new Date).
             getTime()/(1000*60*60*24));
@@ -54,7 +54,7 @@ router.put('/', function(req, res) {
         });
         query.on('error', function(error) {
 
-            //console.log('PUT ERROR! Possible repeat name', error);
+            ////console.log('PUT ERROR! Possible repeat name', error);
             client.end();
             return res.status(500).json({'status':'error',
             'details':'Possible repeat name'});
@@ -207,7 +207,7 @@ var getUsername = function (id, then) {
         });
 
         query.on('end', function(row) {
-            console.log(results);
+            //console.log(results);
             then(results[0].username);
         });
     });
@@ -236,25 +236,25 @@ router.get('/:user_id', function(req, res) {
                 });
 
                 query.on('end', function(row) {
-                    console.log(results);
+                    //console.log(results);
                     getUsername(id, function (name) {
-                        console.log('name is',name);
+                        //console.log('name is',name);
 
                         if (results[0].name) {
-                            console.log('GET success! Found user.');
+                            //console.log('GET success! Found user.');
                             client.end();
                             return res.status(200).json({'status':'success',
                             'details':'found',
                             'name':name,
                             'results': results });
                         } else if (results){
-                            console.log('GET ERROR! User no location');
+                            //console.log('GET ERROR! User no location');
                             client.end();
                             return res.status(404).json({'status':'error',
                             'name':name,
                             'details':'user no location'});
                         } else {
-                            console.log('GET ERROR! User not found');
+                            //console.log('GET ERROR! User not found');
                             client.end();
                             return res.status(404).json({'status':'error',
                             'details':'user not found'});
@@ -326,7 +326,7 @@ router.put('/:user_id/friends', function(req, res) {
                 });
                 addFav.on('error', function(row) {
                     client.end();
-                    console.log(row);
+                    //console.log(row);
                     return res.status(500).json({'status':'error',
                     'details':'unknown error'});
                 });
@@ -344,7 +344,7 @@ router.put('/:user_id/friends', function(req, res) {
                 });
                 addFav.on('error', function(row) {
                     client.end();
-                    console.log(row);
+                    //console.log(row);
                     return res.status(500).json({'status':'error',
                     'details':'unknown error'});
                 });
@@ -433,13 +433,13 @@ router.post('/:user_id/meets', function(req, res) {
                     });
 
                     query.on('end', function(row) {
-                        console.log('POST success! Invite sent!', req.body);
+                        //console.log('POST success! Invite sent!', req.body);
                         client.end();
                         return res.status(201).json({'status':'success',
                         'details':'Invite Sent'});
                     });
                     query.on('error', function(error) {
-                        console.log('POST ERROR! Unknown error', error);
+                        //console.log('POST ERROR! Unknown error', error);
                         client.end();
                         return res.status(500).json({'status':'error',
                         'details':'Unknown error'});
@@ -478,13 +478,13 @@ router.delete('/:user_id/meets', function(req, res) {
                     });
 
                     query.on('end', function(row) {
-                        console.log('DELETE success! Invite Deleted!', req.body);
+                        //console.log('DELETE success! Invite Deleted!', req.body);
                         client.end();
                         return res.status(201).json({'status':'success',
                         'details':'Invite Deleted'});
                     });
                     query.on('error', function(error) {
-                        console.log('DELETE ERROR! Unknown error', error);
+                        //console.log('DELETE ERROR! Unknown error', error);
                         client.end();
                         return res.status(500).json({'status':'error',
                         'details':'Unknown error'});

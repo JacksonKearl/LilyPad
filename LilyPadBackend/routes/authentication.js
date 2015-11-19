@@ -13,7 +13,7 @@ auth = {};
 auth.validate = function(req, onSucc, onErr) {
 
     if (!(req.get('username') && req.get('pin') || req.get('token'))) {
-        console.log('GET ERROR! Insufficient data.', req.body);
+        //console.log('GET ERROR! Insufficient data.', req.body);
         return onErr({'status': 'error', 'details': 'Insufficient data'});
     }
 
@@ -40,14 +40,14 @@ auth.validate = function(req, onSucc, onErr) {
           var decoded = jwt.decode(req.get('token'), secret);
           var curDaysSinceEpoch = Math.floor((new Date).getTime()/(1000*60*60*24));
           var timeIsValid = decoded.expires > curDaysSinceEpoch;
-          console.log(decoded, curDaysSinceEpoch);
+          //console.log(decoded, curDaysSinceEpoch);
           if (decoded.user == name && timeIsValid) {
             results[0].pin = null;
             return onSucc(results[0]);
           }
         }
         catch (err) {
-          console.log(err);
+          //console.log(err);
         }
       } else {
         var response = {'expires':Math.floor((new Date).getTime()/(1000*60*60*24))+3,
@@ -69,7 +69,7 @@ auth.validate = function(req, onSucc, onErr) {
         });
         query.on('error', function(error) {
             client.end();
-            console.log(error);
+            //console.log(error);
             return onErr({'status':'error', 'details':'unknown error'});
         });
     });
@@ -95,7 +95,7 @@ auth.mutualFriends = function(user_id_a, user_id_b, onYes, onNo) {
         });
         query.on('error', function(error) {
             client.end();
-            console.log(error);
+            //console.log(error);
             return onNo({'status':'error', 'details':'unknown error'});
         });
     });
@@ -120,7 +120,7 @@ auth.requestSentFriends = function(user_id_a, user_id_b, onYes, onNo) {
         });
         query.on('error', function(error) {
             client.end();
-            console.log(error);
+            //console.log(error);
             return onNo({'status':'error', 'details':'unknown error'});
         });
     });
@@ -146,7 +146,7 @@ auth.requestRecievedFriends = function(user_id_a, user_id_b, onYes, onNo) {
         });
         query.on('error', function(error) {
             client.end();
-            console.log(error);
+            //console.log(error);
             return onNo({'status':'error', 'details':'unknown error'});
         });
     });

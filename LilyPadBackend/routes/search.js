@@ -12,7 +12,7 @@ router.get('/locations', function(req, res) {
     var results = [];
 
     if (!req.get('phrase')) {
-            console.log('GET ERROR! No headers.');
+            //console.log('GET ERROR! No headers.');
             return res.status(400).json({'status':'error',
                             			'details':'No headers'});
     }
@@ -27,7 +27,7 @@ router.get('/locations', function(req, res) {
         });
 
         query.on('end', function(row) {
-            console.log('GET success!');
+            //console.log('GET success!');
             client.end();
             return res.status(200).json({'status':'success',
                                         'details':'found matches',
@@ -35,7 +35,7 @@ router.get('/locations', function(req, res) {
         });
 
         query.on('error', function(error) {
-            console.log('GET ERROR! Unknown cause');
+            //console.log('GET ERROR! Unknown cause');
             client.end();
             return res.status(500).json({'status':'error',
                             'details':'unknown'});
@@ -47,7 +47,7 @@ router.get('/locations', function(req, res) {
 router.get('/users', function(req, res) {
     var results = [];
     if (!req.get('phrase')) {
-        console.log('GET ERROR! No headers.');
+        //console.log('GET ERROR! No headers.');
         return res.status(400).json({'status':'error',});
     }
 
@@ -63,7 +63,7 @@ router.get('/users', function(req, res) {
                     });
 
                     query.on('end', function(row) {
-                        console.log('GET success!');
+                        //console.log('GET success!');
                         client.end();
                         return res.status(200).json({'status':'success',
                                         'details':'found matches',
@@ -71,7 +71,7 @@ router.get('/users', function(req, res) {
                     });
 
                     query.on('error', function(error) {
-                        console.log('GET ERROR! Unknown cause');
+                        //console.log('GET ERROR! Unknown cause');
                         client.end();
                         return res.status(500).json({'status':'error',
                                         'details':'unknown'});
