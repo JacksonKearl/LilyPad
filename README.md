@@ -35,3 +35,24 @@ module.exports =
     "secret":"ZfegJZVbb3GtAjkYf5rketps7LZkLaxCLHcUGUr...."
 };
 ```
+
+Where `secret` is some random string that will be used as the JSON Web Token key.
+
+Fun tip! 
+
+```bash
+$ xxd -l 28 -p /dev/urandom
+```
+Will generate a good `secret` string for you. You must have vim for this to work. But lets be real, you'd better have vim no matter what. 😉
+
+##Testing
+Integration testing through `mocha` and `supertest`. Tests by default run off of dev server at `lilypaddev.ddns.net`, but this can be configured in `LilyPad/test/tests.js`.
+
+To run tests:
+
+```bash
+$ cd LilyPadBackend/
+$ npm test
+```
+
+Well that wasn't too bad. 🙃
