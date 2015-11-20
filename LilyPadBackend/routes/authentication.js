@@ -30,7 +30,7 @@ auth.validate = function(req, onSucc, onErr) {
         });
 
         query.on('end', function(row) {
-            client.end();
+            done();
 
       if (!results[0]){
               return onErr({'status':'error', 'details':'invalid username'});
@@ -68,7 +68,7 @@ auth.validate = function(req, onSucc, onErr) {
                 });
         });
         query.on('error', function(error) {
-            client.end();
+            done();
             //console.log(error);
             return onErr({'status':'error', 'details':'unknown error'});
         });
@@ -89,12 +89,12 @@ auth.mutualFriends = function(user_id_a, user_id_b, onYes, onNo) {
             results.push(row);
         });
         query.on('end', function(row) {
-            client.end();
+            done();
             if (results[0]) return onYes();
             return onNo({'status':'error','details':'not friends'});
         });
         query.on('error', function(error) {
-            client.end();
+            done();
             //console.log(error);
             return onNo({'status':'error', 'details':'unknown error'});
         });
@@ -114,12 +114,12 @@ auth.requestSentFriends = function(user_id_a, user_id_b, onYes, onNo) {
             results.push(row);
         });
         query.on('end', function(row) {
-            client.end();
+            done();
             if (results[0]) return onYes();
             return onNo({'status':'error','details':'no request sent'});
         });
         query.on('error', function(error) {
-            client.end();
+            done();
             //console.log(error);
             return onNo({'status':'error', 'details':'unknown error'});
         });
@@ -140,12 +140,12 @@ auth.requestRecievedFriends = function(user_id_a, user_id_b, onYes, onNo) {
             results.push(row);
         });
         query.on('end', function(row) {
-            client.end();
+            done();
             if (results[0]) return onYes();
             return onNo({'status':'error','details':'no request recived'});
         });
         query.on('error', function(error) {
-            client.end();
+            done();
             //console.log(error);
             return onNo({'status':'error', 'details':'unknown error'});
         });

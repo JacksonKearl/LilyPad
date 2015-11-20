@@ -28,7 +28,7 @@ router.get('/locations', function(req, res) {
 
         query.on('end', function(row) {
             //console.log('GET success!');
-            client.end();
+            done();
             return res.status(200).json({'status':'success',
                                         'details':'found matches',
                                         'results': results});
@@ -36,7 +36,7 @@ router.get('/locations', function(req, res) {
 
         query.on('error', function(error) {
             //console.log('GET ERROR! Unknown cause');
-            client.end();
+            done();
             return res.status(500).json({'status':'error',
                             'details':'unknown'});
         });
@@ -64,7 +64,7 @@ router.get('/users', function(req, res) {
 
                     query.on('end', function(row) {
                         //console.log('GET success!');
-                        client.end();
+                        done();
                         return res.status(200).json({'status':'success',
                                         'details':'found matches',
                                         'results': results});
@@ -72,7 +72,7 @@ router.get('/users', function(req, res) {
 
                     query.on('error', function(error) {
                         //console.log('GET ERROR! Unknown cause');
-                        client.end();
+                        done();
                         return res.status(500).json({'status':'error',
                                         'details':'unknown'});
                     });

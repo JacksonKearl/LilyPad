@@ -24,7 +24,7 @@ router.put('/', function(req, res) {
 
         var pin = req.get('pin');
 
-        bcrypt.hash(pin, 13, function(err, hash) {
+        bcrypt.hash(pin, 10, function(err, hash) {
             if (err) {
                 return res.status(500).json({'status':'error',
                 'details':'bcrypt error'});
@@ -40,7 +40,7 @@ router.put('/', function(req, res) {
 
         query.on('end', function(row) {
             //console.log('PUT success! Added user', req.body);
-            client.end();
+            done();
             var curDaysSinceEpoch = Math.floor((new Date).
             getTime()/(1000*60*60*24));
             var expireDaysSinceEpoch = curDaysSinceEpoch + 3;
@@ -55,7 +55,7 @@ router.put('/', function(req, res) {
         query.on('error', function(error) {
 
             ////console.log('PUT ERROR! Possible repeat name', error);
-            client.end();
+            done();
             return res.status(500).json({'status':'error',
             'details':'Possible repeat name'});
         });
@@ -73,7 +73,7 @@ var findFavorites = function(user_id, results, onSuc){
         });
 
         favoriteQuery.on('end', function(row) {
-            client.end();
+            done();
             return onSuc(results);
         });
 
@@ -101,7 +101,7 @@ var findFriends = function(user_id, results, onSuc){
         });
 
         friendQuery.on('end', function(row) {
-            client.end();
+            done();
             return findFavorites(user_id, results, onSuc);
         });
     });
@@ -117,7 +117,7 @@ var findMeetUps = function(user_id, results, onSuc){
         });
 
         meetUpQuery.on('end', function(row) {
-            client.end();
+            done();
             return findFriends(user_id, results, onSuc);
         });
     });
@@ -158,17 +158,17 @@ router.patch('/', function(req, res) {
             user.user_id]);
 
             addFav.on('end', function(row) {
-                client.end();
+                done();
                 return res.status(201).json({'status':'success',
                 'details':'location set'});
             });
             addFav.on('error', function(row) {
-                client.end();
+                done();
                 return res.status(500).json({'status':'error',
                 'details':'unknown error'});
             });
         }, function (err) {
-            client.end();
+            done();
             return res.status(401).json(err);
         });
     });
@@ -181,17 +181,17 @@ router.delete('/', function(req, res) {
             var deleteQuery = client.query('DELETE FROM lilypad.people WHERE user_id=$1', [user.user_id]);
 
             deleteQuery.on('end', function(row) {
-                client.end();
+                done();
                 return res.status(200).json({'status':'success',
                                             'details':'account deleted'});
             });
             deleteQuery.on('error', function(row) {
-                client.end();
+                done();
                 return res.status(500).json({'status':'error',
                                             'details':'unknown error'});
             });
         }, function (err) {
-            client.end();
+            done();
             return res.status(401).json(err);
         });
     });
@@ -230,7 +230,7 @@ router.get('/:user_id', function(req, res) {
                 });
 
                 query.on('error', function(row) {
-                    client.end();
+                    done();
                     return res.status(500).json({'status':'error',
                     'details':'unknown error'});
                 });
@@ -242,20 +242,20 @@ router.get('/:user_id', function(req, res) {
 
                         if (results[0].name) {
                             //console.log('GET success! Found user.');
-                            client.end();
+                            done();
                             return res.status(200).json({'status':'success',
                             'details':'found',
                             'name':name,
                             'results': results });
                         } else if (results){
                             //console.log('GET ERROR! User no location');
-                            client.end();
+                            done();
                             return res.status(404).json({'status':'error',
                             'name':name,
                             'details':'user no location'});
                         } else {
                             //console.log('GET ERROR! User not found');
-                            client.end();
+                            done();
                             return res.status(404).json({'status':'error',
                             'details':'user not found'});
                         }
@@ -286,17 +286,17 @@ router.put('/favorites', function(req, res) {
             ',' + req.get('location_id') +
             ')');
             addFav.on('end', function(row) {
-                client.end();
+                done();
                 return res.status(201).json({'status':'success',
                 'details':'favorited location'});
             });
             addFav.on('error', function(row) {
-                client.end();
+                done();
                 return res.status(500).json({'status':'error',
                 'details':'possible prevous fav'});
             });
         }, function (err) {
-            client.end();
+            done();
             return res.status(401).json(err);
         });
     });
@@ -320,12 +320,12 @@ router.put('/:user_id/friends', function(req, res) {
                 ' status=\'mutual\' WHERE partya = $1 and partyb = $2',
                 [id, user.user_id]);
                 addFav.on('end', function(row) {
-                    client.end();
+                    done();
                     return res.status(201).json({'status':'success',
                     'details':'confirmed request'});
                 });
                 addFav.on('error', function(row) {
-                    client.end();
+                    done();
                     //console.log(row);
                     return res.status(500).json({'status':'error',
                     'details':'unknown error'});
@@ -338,19 +338,19 @@ router.put('/:user_id/friends', function(req, res) {
                 ',\'pending\')');
 
                 addFav.on('end', function(row) {
-                    client.end();
+                    done();
                     return res.status(201).json({'status':'success',
                     'details':'request sent'});
                 });
                 addFav.on('error', function(row) {
-                    client.end();
+                    done();
                     //console.log(row);
                     return res.status(500).json({'status':'error',
                     'details':'unknown error'});
                 });
             });
         }, function (err) {
-            client.end();
+            done();
             return res.status(401).json(err);
         });
     });
@@ -368,17 +368,17 @@ router.delete('/:user_id/friends', function(req, res) {
             [id, user.user_id]);
 
             addFav.on('end', function(row) {
-                client.end();
+                done();
                 return res.status(201).json({'status':'success',
                 'details':'request gone'});
             });
             addFav.on('error', function(row) {
-                client.end();
+                done();
                 return res.status(500).json({'status':'error',
                 'details':'unknown error'});
             });
         }, function (err) {
-            client.end();
+            done();
             return res.status(401).json(err);
         });
     });
@@ -395,17 +395,17 @@ router.post('/:user_id/friends', function(req, res) {
             ' SET status=\'mutual\' WHERE partya = $1 and partyb = $2',
             [id, user.user_id]);
             addFav.on('end', function(row) {
-                client.end();
+                done();
                 return res.status(201).json({'status':'success',
                 'details':'confirmed request'});
             });
             addFav.on('error', function(row) {
-                client.end();
+                done();
                 return res.status(500).json({'status':'error',
                 'details':'unknown error'});
             });
         }, function (err) {
-            client.end();
+            done();
             return res.status(401).json(err);
         });
     });
@@ -434,13 +434,13 @@ router.post('/:user_id/meets', function(req, res) {
 
                     query.on('end', function(row) {
                         //console.log('POST success! Invite sent!', req.body);
-                        client.end();
+                        done();
                         return res.status(201).json({'status':'success',
                         'details':'Invite Sent'});
                     });
                     query.on('error', function(error) {
                         //console.log('POST ERROR! Unknown error', error);
-                        client.end();
+                        done();
                         return res.status(500).json({'status':'error',
                         'details':'Unknown error'});
                     });
@@ -479,13 +479,13 @@ router.delete('/:user_id/meets', function(req, res) {
 
                     query.on('end', function(row) {
                         //console.log('DELETE success! Invite Deleted!', req.body);
-                        client.end();
+                        done();
                         return res.status(201).json({'status':'success',
                         'details':'Invite Deleted'});
                     });
                     query.on('error', function(error) {
                         //console.log('DELETE ERROR! Unknown error', error);
-                        client.end();
+                        done();
                         return res.status(500).json({'status':'error',
                         'details':'Unknown error'});
                     });

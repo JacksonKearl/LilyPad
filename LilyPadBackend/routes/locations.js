@@ -37,7 +37,7 @@ router.get('/', function(req, res) {
 
         query.on('end', function(row) {
             //console.log('GET success!');
-            client.end();
+            done();
             return res.status(200).json({'status':'success',
                             'details':'locations found',
                             'results':results});
@@ -45,7 +45,7 @@ router.get('/', function(req, res) {
 
         query.on('error', function(error) {
             //console.log('GET ERROR! Unknown cause');
-            client.end();
+            done();
             return res.status(500).json({'status':'error',
                             'details':'unknown'});
         });
@@ -84,13 +84,13 @@ router.put('/', function(req, res) {
 
                 query.on('end', function(row) {
                     //console.log('POST success! Added location', req.body);
-                    client.end();
+                    done();
                     return res.status(201).json({'status':'success',
                                     'details':'location added'});
                 });
                 query.on('error', function(error) {
                     //console.log('Put ERROR! Possible repeat location');
-                    client.end();
+                    done();
                     return res.status(500).json({'status':'error',
                                     'details':'Possible repeat location'});
                 });
@@ -127,14 +127,14 @@ router.patch('/:location_id', function(req, res) {
 
                 query.on('end', function(row) {
                     //console.log('PUT success! Updated URL');
-                    client.end();
+                    done();
                     return res.status(200).json({'status':'success',
                                     'details':'updated'});
                 });
 
                 query.on('error', function(error) {
                     //console.log('Put ERROR! unknown');
-                    client.end();
+                    done();
                     return res.status(500).json({'status':'error',
                                     'details':'unknown'});
                 });
@@ -165,14 +165,14 @@ router.delete('/', function(req, res) {
 
         query.on('end', function(row) {
             //console.log('DELETE success!');
-            client.end();
+            done();
             return res.status(200).json({'status':'success',
                             'details':'deleted'});
         });
 
         query.on('error', function(error) {
             //console.log('DELETE ERROR! unknown', error);
-            client.end();
+            done();
             return res.status(500).json({'status':'error',
                             'details':'unknown'});
         });
