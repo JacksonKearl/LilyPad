@@ -125,23 +125,31 @@ var findMeetUps = function(user_id, results, onSuc){
 
 
 router.get('/', function(req, res) {
-    var results = {'meets':[],
-    'favorites':[],
-    'friends':{'mutual':[],
-    'pending':[],
-    'requested':[]}
-};
 
-auth.validate(req, function(user) {
-    findMeetUps(user.user_id, results, function() {
-        return res.status(200).json({'status':'success',
-        'details':'data retrived',
-        'user':user,
-        'results':results});
-    });
-}, function(err){
-    return res.status(401).json(err);
-});
+    var results = {
+        'meets':[],
+        'favorites':[],
+        'friends':{
+            'mutual':[],
+            'pending':[],
+            'requested':[]
+        }
+    };
+
+    auth.validate(req,
+        function(user) {
+            findMeetUps(user.user_id, results, function() {
+
+                for(var k in results) user[k]=results[k];
+
+                return res.status(200).json({'status':'success',
+                                            'details':'data retrived',
+                                               'user':user});
+            });
+        }, function(err){
+            return res.status(401).json(err);
+        }
+    );
 });
 
 
