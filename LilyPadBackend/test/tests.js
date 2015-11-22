@@ -4,7 +4,7 @@ var request = require('supertest');
 var config = require('../config.js');
 
 describe('Routing', function() {
-    var url = 'http://lilypaddev.ddns.net:3000';
+    var url = 'http://localhost:3000';
 
     //TEST USERS
 
@@ -70,6 +70,21 @@ describe('Routing', function() {
         "longitude":-101.0921,
         "logo_url":"http://miter.mit.edu..."
     };
+
+    describe('Reset', function () {
+        it('should let those in power reset everything', function (done) {
+            request(url)
+                .delete('/locations/alldata')
+                .set({'key':config.secret})
+                .end(function (err, res) {
+                    if (err) {
+                        throw err;
+                    }
+                    res.status.should.equal(200);
+                    done();
+                });
+        });
+    });
 
     describe('User Login Routes', function () {
         it('should allow me to make my user', function (done) {
@@ -162,8 +177,26 @@ describe('Routing', function() {
                 });
         });
 
+        it('should not allow me to log in with wrong pin', function (done) {
+            var falifiedPINCreds = JSON.parse(JSON.stringify(myCreds));
+            delete falifiedPINCreds.token;
+            falifiedPINCreds.pin = 999999;
+
+            request(url)
+                .get('/users')
+                .set(falifiedPINCreds)
+                .end(function (err, res) {
+                    if (err) {
+                        throw err;
+                    }
+                    res.status.should.equal(401);
+                    done();
+                });
+        });
+
         it('should allow me to log in with pin, giving me a token', function (done) {
             delete myCreds.token;
+            myCreds.pin = 123321;
             request(url)
                 .get('/users')
                 .set(myCreds)
@@ -278,7 +311,7 @@ describe('Routing', function() {
                     if (err) {
                         throw err;
                     }
-                    res.status.should.equal(401);
+                    res.status.should.equal(400);
                     done();
                 });
         });
@@ -354,7 +387,7 @@ describe('Routing', function() {
                     if (err) {
                         throw err;
                     }
-                    res.status.should.equal(401);
+                    res.status.should.equal(400);
                     done();
                 });
         });
@@ -400,7 +433,7 @@ describe('Routing', function() {
                     if (err) {
                         throw err;
                     }
-                    res.body.results.friends.requested[0].should.eql({'partya':1,'partyb':3,'status':'pending'});
+                    res.body.user.friends.requested[0].should.eql({'partya':1,'partyb':3,'status':'pending'});
                     done();
                 });
             });
@@ -413,7 +446,7 @@ describe('Routing', function() {
                     if (err) {
                         throw err;
                     }
-                    res.body.results.friends.pending[0].should.eql({'partya':1,'partyb':3,'status':'pending'});
+                    res.body.user.friends.pending[0].should.eql({'partya':1,'partyb':3,'status':'pending'});
                     done();
                 });
             });
@@ -439,7 +472,7 @@ describe('Routing', function() {
                     if (err) {
                         throw err;
                     }
-                    res.body.results.friends.mutual[0].should.eql({'partya':1,'partyb':3,'status':'mutual'});
+                    res.body.user.friends.mutual[0].should.eql({'partya':1,'partyb':3,'status':'mutual'});
                     done();
                 });
             });
@@ -452,7 +485,7 @@ describe('Routing', function() {
                     if (err) {
                         throw err;
                     }
-                    res.body.results.friends.mutual[0].should.eql({'partya':1,'partyb':3,'status':'mutual'});
+                    res.body.user.friends.mutual[0].should.eql({'partya':1,'partyb':3,'status':'mutual'});
                     done();
                 });
             });
@@ -478,7 +511,7 @@ describe('Routing', function() {
                         if (err) {
                             throw err;
                         }
-                        res.body.results.friends.requested[0].should.eql({'partya':6,'partyb':1,'status':'pending'});
+                        res.body.user.friends.requested[0].should.eql({'partya':6,'partyb':1,'status':'pending'});
                         done();
                     });
                 });
@@ -491,7 +524,7 @@ describe('Routing', function() {
                     if (err) {
                         throw err;
                     }
-                    res.body.results.friends.pending[0].should.eql({'partya':6,'partyb':1,'status':'pending'});
+                    res.body.user.friends.pending[0].should.eql({'partya':6,'partyb':1,'status':'pending'});
                     done();
                 });
             });
@@ -517,7 +550,7 @@ describe('Routing', function() {
                             if (err) {
                                 throw err;
                             }
-                            res.body.results.friends.requested.length.should.equal(0);
+                            res.body.user.friends.requested.length.should.equal(0);
                             done();
                         });
                     });
@@ -530,7 +563,7 @@ describe('Routing', function() {
                         if (err) {
                             throw err;
                         }
-                        res.body.results.friends.pending.length.should.equal(0);
+                        res.body.user.friends.pending.length.should.equal(0);
                         done();
                     });
                 });
@@ -652,7 +685,7 @@ describe('Routing', function() {
                         if (err) {
                             throw err;
                         }
-                        res.body.results.meets.length.should.equal(3);
+                        res.body.user.meets.length.should.equal(3);
                         done();
                     });
                 });
@@ -665,7 +698,7 @@ describe('Routing', function() {
                         if (err) {
                             throw err;
                         }
-                        res.body.results.meets.length.should.equal(3);
+                        res.body.user.meets.length.should.equal(3);
                         done();
                     });
                 });
@@ -725,7 +758,7 @@ describe('Routing', function() {
                         if (err) {
                             throw err;
                         }
-                        res.body.results.meets.length.should.equal(1);
+                        res.body.user.meets.length.should.equal(1);
                         done();
                     });
                 });
@@ -738,7 +771,7 @@ describe('Routing', function() {
                         if (err) {
                             throw err;
                         }
-                        res.body.results.meets.length.should.equal(1);
+                        res.body.user.meets.length.should.equal(1);
                         done();
                     });
                 });
@@ -805,10 +838,10 @@ describe('Routing', function() {
                     if (err) {
                         throw err;
                     }
-                    res.body.results.meets.length.should.equal(0);
-                    res.body.results.friends.mutual.length.should.equal(0);
-                    res.body.results.friends.pending.length.should.equal(0);
-                    res.body.results.friends.requested.length.should.equal(0);
+                    res.body.user.meets.length.should.equal(0);
+                    res.body.user.friends.mutual.length.should.equal(0);
+                    res.body.user.friends.pending.length.should.equal(0);
+                    res.body.user.friends.requested.length.should.equal(0);
 
                     done();
                 });
@@ -830,7 +863,7 @@ describe('Routing', function() {
 
         it('should not let those not in power reset everything', function (done) {
             request(url)
-                .delete('/locations')
+                .delete('/locations/alldata')
                 .end(function (err, res) {
                     if (err) {
                         throw err;
@@ -842,7 +875,7 @@ describe('Routing', function() {
 
         it('should let those in power reset everything', function (done) {
             request(url)
-                .delete('/locations')
+                .delete('/locations/alldata')
                 .set({'key':config.secret})
                 .end(function (err, res) {
                     if (err) {

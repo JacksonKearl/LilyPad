@@ -6,7 +6,7 @@ var pg = require('pg');
 var config = require('../config.js');
 var connectionString = config.url;
 var cleanser = require('./format.js');
-
+var pgInterface = require('./postgres.js');
 
 
 router.get('/', function(req, res) {
@@ -18,37 +18,25 @@ router.get('/', function(req, res) {
                             'details':'No headers'});
         }
 
-    pg.connect(connectionString, function(err, client, done) {
-        var lat = req.get('latitude');
-        var lon = req.get('longitude');
-        var party = req.get('party');
-        var query;
-        if (party === 'true') {
-            query = client.query('SELECT * FROM '+
-                                    'lilypad.get_parties_nearest($1,$2)',[lat,lon]);
-        } else {
-            query = client.query('SELECT * FROM '+
-                                    'lilypad.get_locations_nearest($1,$2)',[lat,lon]);
-        }
+    var lat = req.get('latitude');
+    var lon = req.get('longitude');
+    var party = req.get('party');
+    var query;
+    if (party === 'true') {
+        query = 'SELECT * FROM lilypad.get_parties_nearest('+lat+','+lon+')';
+    } else {
+        query = 'SELECT * FROM lilypad.get_locations_nearest('+lat+','+lon+')';
+    }
 
-        query.on('row', function(row) {
-            results.push(row);
-        });
-
-        query.on('end', function(row) {
-            //console.log('GET success!');
-            done();
-            return res.status(200).json({'status':'success',
-                            'details':'locations found',
-                            'results':results});
-        });
-
-        query.on('error', function(error) {
-            //console.log('GET ERROR! Unknown cause');
-            done();
-            return res.status(500).json({'status':'error',
-                            'details':'unknown'});
-        });
+    pgInterface.unauthenticated(query, req, res)
+    .then(function (data) {
+        return res.status(200).json({'status':'success',
+                        'details':'locations found',
+                        'results':data.result});
+    })
+    .catch(function (error) {
+        return res.status(error.code).json({'status':error.status,
+                                           'details':error.details});
     });
 });
 
@@ -66,42 +54,17 @@ router.put('/', function(req, res) {
                         'details': 'Insufficient data'});
     }
 
-    auth.validate(req,
-        function(user) {
-            pg.connect(connectionString, function(err, client, done) {
-                var query = client.query('SELECT * FROM '+
-                                            'lilypad.create_location($1,$2,$3,$4,$5)',
-                                [req.body.name,
-                                req.body.latitude,
-                                req.body.longitude,
-                                req.body.party,
-                                req.body.logo_url ? req.body.logo_url : '']
-                            );
-
-                query.on('row', function(row) {
-                    results.push(row);
-                });
-
-                query.on('end', function(row) {
-                    //console.log('POST success! Added location', req.body);
-                    done();
-                    return res.status(201).json({'status':'success',
+    pgInterface.authenticated(cleanser('SELECT * FROM lilypad.create_location(%L,%L,%L,%L,%L)', req.body.name, req.body.latitude, req.body.longitude, req.body.party, req.body.logo_url ? req.body.logo_url : ''), req,res)
+    .then(function () {
+        return res.status(201).json({'status':'success',
                                     'details':'location added'});
-                });
-                query.on('error', function(error) {
-                    //console.log('Put ERROR! Possible repeat location');
-                    done();
-                    return res.status(500).json({'status':'error',
-                                    'details':'Possible repeat location'});
-                });
-            });
-
-        }, function(err) {
-            return res.status(401).json(err);
-        }
-    );
-
+    })
+    .catch(function (error) {
+        return res.status(error.code).json({'status':error.status,
+                                           'details':error.details});
+    });
 });
+
 
 router.patch('/:location_id', function(req, res) {
     var results = [];
@@ -116,70 +79,34 @@ router.patch('/:location_id', function(req, res) {
                         'details': 'Insufficient data'});
     }
 
-    auth.validate(req,
-        function(user){
-            pg.connect(connectionString, function(err, client, done) {
-                var query = client.query("SELECT * FROM lilypad.update_url($1,$2)", [data, id]);
-
-                query.on('row', function(row) {
-                    results.push(row);
-                });
-
-                query.on('end', function(row) {
-                    //console.log('PUT success! Updated URL');
-                    done();
-                    return res.status(200).json({'status':'success',
-                                    'details':'updated'});
-                });
-
-                query.on('error', function(error) {
-                    //console.log('Put ERROR! unknown');
-                    done();
-                    return res.status(500).json({'status':'error',
-                                    'details':'unknown'});
-                });
-
-            });
-        }, function(error){
-            return res.status(400).json(error);
-        });
-
+    pgInterface.authenticated(cleanser('SELECT * FROM lilypad.update_url(%L,%L)',data, id), req, res)
+    .then(function () {
+        return res.status(200).json({'status':'success',
+                        'details':'updated'});
+    })
+    .catch(function (error) {
+        return res.status(error.code).json({'status':error.status,
+                                           'details':error.details});
+    });
 });
 
-router.delete('/', function(req, res) {
+router.delete('/alldata', function(req, res) {
     var key = req.get('key');
     if (key !== config.secret) {
         return res.status(401).json({'status':'error',
                         'details':'unauthorized'});
     }
 
-    var results = [];
-
-    var id = req.params.location_id;
-    pg.connect(connectionString, function(err, client, done) {
-        var query = client.query("SELECT * FROM lilypad.reset()");
-
-        query.on('row', function(row) {
-            results.push(row);
-        });
-
-        query.on('end', function(row) {
-            //console.log('DELETE success!');
-            done();
-            return res.status(200).json({'status':'success',
-                            'details':'deleted'});
-        });
-
-        query.on('error', function(error) {
-            //console.log('DELETE ERROR! unknown', error);
-            done();
-            return res.status(500).json({'status':'error',
-                            'details':'unknown'});
-        });
-
+    pgInterface.unauthenticated("SELECT * FROM lilypad.reset()", req, res)
+    .then(function () {
+        return res.status(200).json({'status':'success',
+                                    'details':'deleted'});
+    })
+    .catch(function (error) {
+        return res.status(500).json({'status':'error',
+                                    'details':'unknown'});
     });
-
-
 });
+
 
 module.exports = router;

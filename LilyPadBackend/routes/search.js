@@ -1,4 +1,3 @@
-/*jshint -W058 */
 var auth = require('./authentication.js');
 var express = require('express');
 var router = express.Router();
@@ -6,10 +5,12 @@ var pg = require('pg');
 var config = require('../config.js');
 var connectionString = config.url;
 var cleanser = require('./format.js');
+var pgInterface = require('./postgres.js');
 
 
 router.get('/locations', function(req, res) {
-    var results = [];
+
+    var searchPhrase = req.get('phrase');
 
     if (!req.get('phrase')) {
             //console.log('GET ERROR! No headers.');
@@ -17,71 +18,44 @@ router.get('/locations', function(req, res) {
                             			'details':'No headers'});
     }
 
-    pg.connect(connectionString, function(err, client, done) {
-        var searchPhrase = req.get('phrase');
-
-        var query = client.query('SELECT * FROM lilypad.search_locations($1)', [searchPhrase]);
-
-        query.on('row', function(row) {
-            results.push(row);
-        });
-
-        query.on('end', function(row) {
-            //console.log('GET success!');
-            done();
-            return res.status(200).json({'status':'success',
-                                        'details':'found matches',
-                                        'results': results});
-        });
-
-        query.on('error', function(error) {
-            //console.log('GET ERROR! Unknown cause');
-            done();
-            return res.status(500).json({'status':'error',
-                            'details':'unknown'});
-        });
+    pgInterface.unauthenticated('SELECT * FROM lilypad.search_locations(\''+searchPhrase+'\')', req, res)
+    .then(function (data) {
+        return res.status(200).json({'status':'success',
+                                    'details':'found matches',
+                                    'results': data.result});
+    })
+    .catch(function (error) {
+        return res.status(error.code).json({'status':error.status,
+                                           'details':error.details});
     });
+
 });
 
 
 router.get('/users', function(req, res) {
     var results = [];
+    var searchPhrase = req.get('phrase');
+
     if (!req.get('phrase')) {
         //console.log('GET ERROR! No headers.');
         return res.status(400).json({'status':'error',});
     }
 
-    var searchPhrase = req.get('phrase');
-    auth.validate(req,
-        function(user) {
-            pg.connect(connectionString,
-                function(err, client, done) {
-                    var query = client.query('SELECT * FROM lilypad.search_users($1)', [searchPhrase]);
-
-                    query.on('row', function(row) {
-                        results.push({'user_id':row.user_id, 'username':row.username});
-                    });
-
-                    query.on('end', function(row) {
-                        //console.log('GET success!');
-                        done();
-                        return res.status(200).json({'status':'success',
-                                        'details':'found matches',
-                                        'results': results});
-                    });
-
-                    query.on('error', function(error) {
-                        //console.log('GET ERROR! Unknown cause');
-                        done();
-                        return res.status(500).json({'status':'error',
-                                        'details':'unknown'});
-                    });
-                }
-            );
-        }, function (err) {
-            return res.status(401).json(err);
+    pgInterface.authenticated('SELECT * FROM lilypad.search_users(\''+searchPhrase+'\')', req, res)
+    .then(function (data) {
+        var results = [];
+        for (var i = 0; i < data.result.length; i++) {
+            results.push({user_id:data.result[i].user_id,
+                         username:data.result[i].username});
         }
-    );
+        return res.status(200).json({'status':'success',
+                        'details':'found matches',
+                        'results': results});
+    })
+    .catch(function (error) {
+        return res.status(error.code).json({'status':error.status,
+                                           'details':error.details});
+    });
 });
 
 module.exports = router;

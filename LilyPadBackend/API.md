@@ -91,9 +91,7 @@ pin OR token | text    |
     "username": "newUser1",
     "pin": null,
     "last_location": 1,
-    "token": "eyJ0eXAiOiJKV1QiLHg..."
-  },
-  "results": {
+    "token": "eyJ0eXAiOiJKV1QiLHg...",
     "meets": [
       {
         "requester": 10,

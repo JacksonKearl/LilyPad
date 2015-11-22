@@ -1,5 +1,11 @@
 /*jshint -W058 */
 
+/*
+*  Yeah, this ought to be refactored, but methods in postgres.js
+*     would error handle in ways that arent comapatible with the
+*     architecture of this file. 
+*/
+
 var bcrypt = require('bcrypt');
 var pg = require('pg');
 var config = require('../config.js');
@@ -32,40 +38,42 @@ auth.validate = function(req, onSucc, onErr) {
         query.on('end', function(row) {
             done();
 
-      if (!results[0]){
-              return onErr({'status':'error', 'details':'invalid username'});
-      }
-      if (req.get('token')) {
-        try {
-          var decoded = jwt.decode(req.get('token'), secret);
-          var curDaysSinceEpoch = Math.floor((new Date).getTime()/(1000*60*60*24));
-          var timeIsValid = decoded.expires > curDaysSinceEpoch;
-          //console.log(decoded, curDaysSinceEpoch);
-          if (decoded.user == name && timeIsValid) {
-            results[0].pin = null;
-            return onSucc(results[0]);
-          }
-        }
-        catch (err) {
-          //console.log(err);
-        }
-      } else {
-        var response = {'expires':Math.floor((new Date).getTime()/(1000*60*60*24))+3,
-                           'user':results[0].username};
+            if (!results[0]){
+                return onErr({'status':'error', 'details':'invalid username'});
+            }
+
+            if (req.get('token')) {
+                try {
+                    var decoded = jwt.decode(req.get('token'), secret);
+                    var curDaysSinceEpoch = Math.floor((new Date).getTime()/(1000*60*60*24));
+                    var timeIsValid = decoded.expires > curDaysSinceEpoch;
+                    //console.log(decoded, curDaysSinceEpoch);
+                    if (decoded.user == name && timeIsValid) {
+                        results[0].pin = null;
+                        return onSucc(results[0]);
+                    }
+                }
+                catch (err) {
+                    //console.log(err);
+                }
+            } else {
+                var response = {'expires':Math.floor((new Date).getTime()/(1000*60*60*24))+3,
+                'user':results[0].username};
 
 
-        results[0].token = jwt.encode(response, secret);
-      }
-      bcrypt.compare(pin, results[0].pin, function(err, res) {
-        if (err) {
-          return onErr({'status':'error', 'details':'some bcrypt error'});
-        }
-        if (res) {
-          results[0].pin = null;
-          return onSucc(results[0]);
-        }
-          return onErr({'status':'error', 'details':'invalid password'});
-                });
+                results[0].token = jwt.encode(response, secret);
+            }
+
+            bcrypt.compare(pin, results[0].pin, function(err, res) {
+                if (err) {
+                    return onErr({'status':'error', 'details':'some bcrypt error'});
+                }
+                if (res) {
+                    results[0].pin = null;
+                    return onSucc(results[0]);
+                }
+                return onErr({'status':'error', 'details':'invalid password'});
+            });
         });
         query.on('error', function(error) {
             done();
