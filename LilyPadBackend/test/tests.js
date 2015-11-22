@@ -4,7 +4,7 @@ var request = require('supertest');
 var config = require('../config.js');
 
 describe('Routing', function() {
-    var url = 'http://lilypaddev.ddns.net:3000';
+    var url = 'http://localhost:3000';
 
     //TEST USERS
 
