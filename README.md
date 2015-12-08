@@ -38,7 +38,7 @@ module.exports =
 
 Where `secret` is some random string that will be used as the JSON Web Token key.
 
-Fun tip! 
+####Fun tip! 
 
 ```bash
 $ xxd -l 28 -p /dev/urandom
